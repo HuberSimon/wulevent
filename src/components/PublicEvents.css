@@ -1,0 +1,50 @@
+.public-events {
+  background: transparent;
+  color: white;
+  padding: 80px 20px;
+  text-align: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.public-events h1 {
+  font-size: 48px;
+  margin-bottom: 40px;
+}
+
+.events-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.event-box {
+  background: rgba(80, 96, 100, 0.74);
+  border-radius: 12px;
+  padding: 20px;
+  width: 250px;
+  min-height: 150px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  
+}
+
+.event-box:hover {
+  transform: translateY(-5px);
+  background: rgba(113, 114, 114, 0.658);
+}
+
+.event-box h2 {
+  font-size: 18px;
+  color: #030303;
+  margin-bottom: 10px;
+}
+
+.event-box h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.event-box p {
+  font-size: 16px;
+}

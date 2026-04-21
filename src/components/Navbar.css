@@ -1,0 +1,163 @@
+.navbar {
+  position: fixed;
+  width: 100vw;
+  height: 40px; 
+  top: 0;
+  left: 0;
+  background: #363636;
+  z-index: 1000;
+}
+
+.navbar-container {
+  display: flex;
+  height: 40px; 
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.menu-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: bold;
+  padding-left: 10px;
+  color: #43a047;
+}
+
+.logo-img {
+  height: 40px;
+  object-fit: contain;
+  max-width: 75%;
+  filter: brightness(0.6);
+}
+
+.burger {
+  width: 30px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  z-index: 1100;
+  padding-right: 20px;
+}
+
+.burger span {
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: 0.3s;
+}
+
+
+.burger.open span:nth-child(1) {
+  transform: rotate(45deg) translateY(8px);
+}
+.burger.open span:nth-child(2) {
+  opacity: 0;
+}
+.burger.open span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-8px);
+}
+
+.menu {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 250px;
+  height: 100vh;
+  background: #363636;
+  display: flex;
+  flex-direction: column;
+  padding: 80px 20px;
+  transition: 0.3s;
+  z-index: 1050;
+}
+
+.menu.active {
+  right: 0;
+}
+
+.menu a {
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:black;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1040;
+}
+
+.overlay.show {
+  opacity: 0.5;
+  visibility: visible;
+}
+
+.login-btn {
+  color: #4caf50;
+  border: 2px solid #4caf50;
+  padding: 0px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 15px;
+  margin-right: 10px;
+  transition: all 0.3s;
+  z-index: 1100;
+}
+
+.login-btn:hover {
+  background: #43a047;
+  color: #40474d;
+}
+
+.login-btn.hide {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.user-info {
+  padding: 10px;
+}
+
+.logout-btn {
+  color: #4caf50;
+  border: 1px solid #4caf50;
+  padding: 0px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 15px;
+  margin-right: 10px;
+  transition: all 0.3s;
+  z-index: 1100;
+}
+
+.logout-btn:hover {
+  background: #43a047;
+  color: #40474d;
+}
+
+.logout-btn.hide {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
