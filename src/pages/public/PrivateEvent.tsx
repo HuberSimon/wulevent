@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
 import { getEventById } from "../../services/database/private-event-service";
+import { saveInvitedEvent } from "../../services/database/private-event-service";
 import { addRSVP, getRSVPs } from "../../services/database/rsvp-service";
 import { useAuth } from "../../context/AuthContext";
 import { doc, updateDoc } from "firebase/firestore";
@@ -16,53 +18,61 @@ const PrivateEvent = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [attendees, setAttendees] = useState<any[]>([]);
 
-  // PASSWORD ACCESS
   const [inputPassword, setInputPassword] = useState("");
   const [accessGranted, setAccessGranted] = useState(false);
   const [error, setError] = useState("");
 
-  // MODALS
   const [showRSVPModal, setShowRSVPModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // RSVP
   const [name, setName] = useState("");
   const [guests, setGuests] = useState(1);
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState("yes");
 
-  // PASSWORD EDIT
   const [newPassword, setNewPassword] = useState("");
 
   const [copied, setCopied] = useState(false);
   const [alreadyRSVP, setAlreadyRSVP] = useState(false);
 
   const rsvpKey = `rsvp-${id}`;
+  const eventLink = `${window.location.origin}/event/${id}`;
+  const isLoggedIn = !!user;
+  const navigate = useNavigate();
 
-  // LOAD EVENT
-  useEffect(() => {
-    const load = async () => {
-      if (!id) return;
+useEffect(() => {
+  const load = async () => {
+    if (!id) return;
 
-      const eventData = await getEventById(id);
-      const rsvps = await getRSVPs(id);
+    const eventData = await getEventById(id);
+    const rsvps = await getRSVPs(id);
 
-      setEvent({
-        ...eventData,
-        showAttendees: eventData?.showAttendees ?? true
-      });
+    if (!eventData) return;
 
-      setAttendees(rsvps);
+    setEvent({
+      ...eventData,
+      showAttendees: eventData?.showAttendees ?? true
+    });
 
-      if (localStorage.getItem(rsvpKey)) {
-        setAlreadyRSVP(true);
+    setAttendees(rsvps);
+
+    if (localStorage.getItem(rsvpKey)) {
+      setAlreadyRSVP(true);
+    }
+
+    if (user && user.uid !== eventData.creatorId) {
+      try {
+        await saveInvitedEvent(user.uid, id);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (err) {
+        console.log("Event evtl. schon gespeichert");
       }
-    };
+    }
+  };
 
-    load();
-  }, [id]);
+  load();
+}, [id, user]);
 
-  // scroll lock
   useEffect(() => {
     document.body.style.overflow = showRSVPModal || showPasswordModal
       ? "hidden"
@@ -83,16 +93,34 @@ const PrivateEvent = () => {
     }
   };
 
-  // COPY LINK
   const handleCopyLink = async () => {
     const link = `${window.location.origin}/event/${id}`;
-    await navigator.clipboard.writeText(link);
 
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      if (!navigator.clipboard) {
+        throw new Error("Clipboard API not supported");
+      }
+
+      await navigator.clipboard.writeText(link);
+
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+
+    } catch (err) {
+      console.error("Copy failed:", err);
+
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
-  // RSVP
   const handleRSVP = async () => {
     if (!name) return alert("Bitte Name eingeben");
 
@@ -117,23 +145,32 @@ const PrivateEvent = () => {
   };
 
   const toggleAttendeesVisibility = async () => {
-    const newValue = !(event.showAttendees ?? true);
+    if (!id) return;
 
-    await updateDoc(doc(db, "private-events", id!), {
-      showAttendees: newValue
-    });
+    const currentValue = event?.showAttendees ?? true;
+    const newValue = !currentValue;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setEvent((prev: any) => ({
-      ...prev,
-      showAttendees: newValue
-    }));
+    try {
+      await updateDoc(doc(db, "private-events", id), {
+        showAttendees: newValue
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setEvent((prev: any) => ({
+        ...prev,
+        showAttendees: newValue
+      }));
+
+    } catch (error) {
+      console.error("Failed to update visibility:", error);
+    }
   };
 
   const handlePasswordUpdate = async () => {
     await updateDoc(doc(db, "private-events", id!), {
       password: newPassword
     });
+    console.log("open modal clicked")
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setEvent((prev: any) => ({
@@ -145,11 +182,10 @@ const PrivateEvent = () => {
     setShowPasswordModal(false);
   };
 
-  // 🔒 PASSWORD SCREEN
   if (!canAccess) {
     return (
       <div className="password-screen">
-        <h1>🔒 Event geschützt</h1>
+        <h1>🔒 Veranstaltung geschützt</h1>
 
         <input
           type="password"
@@ -170,7 +206,6 @@ const PrivateEvent = () => {
   return (
     <div className="event-container">
 
-      {/* HERO */}
       <div className="event-hero">
 
         <div className="hero-left">
@@ -211,30 +246,55 @@ const PrivateEvent = () => {
 
         <img
           className="event-img"
-          src="/images/geburtstag.png"
+          src={event?.imagePath || "/images/sonstige-veranstaltung.png"}
           alt=""
         />
 
         <div className="overlay"></div>
       </div>
 
-      {/* CONTENT */}
       <div className="event-content">
         <p>{event.description}</p>
 
-        {!alreadyRSVP && (
-          <button
-            className="open-rsvp-btn"
-            onClick={() => setShowRSVPModal(true)}
-          >
-            Rückmelden
-          </button>
-        )}
+        <div className="event-content-right">
+          {!alreadyRSVP && !isCreator && (
+            <button
+              className="open-rsvp-btn"
+              onClick={() => setShowRSVPModal(true)}
+            >
+              Rückmelden
+            </button>
+          )}
 
-        {alreadyRSVP && <span>✅ Erfolgreich zurückgemeldet!</span>}
+          {alreadyRSVP && !isCreator && <span>✅ Erfolgreich zurückgemeldet!</span>}
+
+          {!isLoggedIn && !isCreator && (
+            <button
+              className="login-save-btn"
+              onClick={() => {
+                localStorage.setItem("redirectEvent", id!);
+                navigate("/login");
+              }}
+            >
+              Einloggen & Event speichern
+            </button>
+          )}
+
+          {isCreator && eventLink &&  (
+            <div className="qr-section">
+              <QRCodeCanvas
+                value={eventLink}
+                size={160}
+                bgColor="#ffffff"
+                fgColor="#000000"
+                level="H"
+              />
+            </div>
+          )}
+        </div>
+
       </div>
 
-      {/* ATTENDEES */}
       {(event.showAttendees || isCreator) && (
         <div className="attendees">
           <h2>Teilnehmer</h2>
@@ -250,38 +310,71 @@ const PrivateEvent = () => {
         </div>
       )}
 
-      {/* RSVP MODAL */}
-      {showRSVPModal && ( 
-        <div className="modal-overlay" onClick={() => setShowRSVPModal(false)}> 
-          <div className="modal" onClick={(e) => e.stopPropagation()}> 
-            <div className="modal-close" onClick={() => setShowRSVPModal(false)}> 
-              ✖ 
-            </div> 
-            <h2>Teilnehmen</h2> 
-            <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} /> 
-            <input type="number" min="1" value={guests} onChange={(e) => setGuests(Number(e.target.value))} /> 
-            <textarea placeholder="Kommentar" value={comment} onChange={(e) => setComment(e.target.value)} /> 
-              <div className="rsvp-buttons"> 
-                <button onClick={() => setStatus("yes")} className={status === "yes" ? "active yes" : ""}>
-                  ✅ Komme
-                </button> 
-                <button onClick={() => setStatus("no")} className={status === "no" ? "active no" : ""}>
-                  ❌ Absage
-                </button> 
-              </div> 
-              <button onClick={handleRSVP}> Absenden </button> 
-              </div> 
-            </div> 
-          )}
+      {showRSVPModal && (
+        <div className="modal-overlay" onClick={() => setShowRSVPModal(false)}>
+          <div className="rsvp-modal" onClick={(e) => e.stopPropagation()}>
 
-      {/* PASSWORD MODAL */}
+            <div className="rsvp-header">
+              <h2>🎉 Rückmeldung</h2>
+              <p>Sag uns kurz ob du kommst</p>
+
+              <button className="rsvp-modal-close" onClick={() => setShowRSVPModal(false)}>
+                ✖
+              </button>
+            </div>
+
+            <div className="rsvp-body">
+
+              <input
+                placeholder="Dein Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+
+              <input
+                value={guests}
+                onChange={(e) => setGuests(Number(e.target.value))}
+                placeholder="Anzahl Personen"
+              />
+
+              <textarea
+                placeholder="Kommentar (optional)"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+
+              <div className="rsvp-choice">
+                <button
+                  className={status === "yes" ? "active yes" : ""}
+                  onClick={() => setStatus("yes")}
+                >
+                  ✅ Ich komme
+                </button>
+
+                <button
+                  className={status === "no" ? "active no" : ""}
+                  onClick={() => setStatus("no")}
+                >
+                  ❌ Leider nicht
+                </button>
+              </div>
+
+              <button className="rsvp-submit" onClick={handleRSVP}>
+                Absenden
+              </button>
+
+            </div>
+          </div>
+        </div>
+      )}
+
       {showPasswordModal && (
         <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
 
-            <div className="modal-close" onClick={() => setShowPasswordModal(false)}>
+            <button className="modal-close" onClick={() => setShowPasswordModal(false)}>
               ✖
-            </div>
+            </button>
 
             <h2>🔐 Passwort ändern</h2>
 
@@ -296,11 +389,7 @@ const PrivateEvent = () => {
               onChange={(e) => setNewPassword(e.target.value)}
             />
 
-            <div className="rsvp-buttons">
-              <button onClick={() => setShowPasswordModal(false)}>
-                Abbrechen
-              </button>
-
+            <div className="modal-save">
               <button className="active" onClick={handlePasswordUpdate}>
                 Speichern
               </button>

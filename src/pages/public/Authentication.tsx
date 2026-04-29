@@ -1,57 +1,67 @@
-import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import "./Authentication.css";
+import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import toast from "react-hot-toast"
 
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile
-} from "firebase/auth";
-import { auth } from "../../firebase";
+} from "firebase/auth"
+
+import { auth } from "../../firebase"
+import "./Authentication.css"
 
 const Authentication: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(true)
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const redirectEvent = localStorage.getItem("redirectEvent");
 
   const handleSubmit = async () => {
-    setError("");
-
     if (!email || !password || (!isLogin && !name)) {
-      setError("Bitte alle Felder ausfüllen");
-      return;
+      toast.error("Bitte alle Felder ausfüllen")
+      return
     }
+
+    setLoading(true)
 
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email, password)
+        toast.success("Willkommen zurück 👋")
       } else {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
+        const result = await createUserWithEmailAndPassword(auth, email, password)
 
         await updateProfile(result.user, {
-          displayName: name,
-        });
+          displayName: name
+        })
+
+        toast.success("Account erstellt 🎉")
       }
 
-      navigate("/dashboard");
+      if (redirectEvent) {
+        navigate(`/event/${redirectEvent}`);
+        localStorage.removeItem("redirectEvent");
+      } else {
+        navigate("/dashboard");
+      }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message)
     }
-  };
+
+    setLoading(false)
+  }
 
   return (
     <div className="login-container">
-      <h1>{isLogin ? "Login" : "Sign Up"}</h1>
+      <h1>{isLogin ? "Login" : "Account erstellen"}</h1>
 
       {!isLogin && (
         <input
@@ -62,7 +72,6 @@ const Authentication: React.FC = () => {
       )}
 
       <input
-        type="email"
         placeholder="E-Mail"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -75,22 +84,19 @@ const Authentication: React.FC = () => {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      <button onClick={handleSubmit}>
-        {isLogin ? "Login" : "Registrieren"}
+      <button
+        className="primary"
+        onClick={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? "..." : isLogin ? "Login" : "Registrieren"}
       </button>
 
-      {error && <p className="login-error">{error}</p>}
-
-      <p
-        style={{ cursor: "pointer", marginTop: "10px" }}
-        onClick={() => setIsLogin(!isLogin)}
-      >
-        {isLogin
-          ? "Noch kein Account? Registrieren"
-          : "Schon einen Account? Login"}
+      <p onClick={() => setIsLogin(!isLogin)} style={{ cursor: "pointer" }}>
+        {isLogin ? "Noch kein Account?" : "Zurück zum Login"}
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default Authentication;
+export default Authentication

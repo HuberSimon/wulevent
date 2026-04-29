@@ -1,27 +1,41 @@
-import { collection, addDoc, getDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  orderBy
+} from "firebase/firestore";
 import { db } from "../../firebase";
 
 export interface PublicEvent {
   id?: string;
   title: string;
   description: string;
-  image: string;
-  creatorId: string;
+  city: string;
+  date: string;
 }
 
-export const createEvent = async (event: PublicEvent) => {
-  const docRef = await addDoc(collection(db, "events"), event);
+export const createPublicEvent = async (data: PublicEvent) => {
+  const docRef = await addDoc(collection(db, "public-events"), {
+    ...data,
+    createdAt: new Date(),
+  });
+
   return docRef.id;
 };
 
-export const getEventById = async (id: string) => {
-  const docRef = doc(db, "events", id);
-  const snapshot = await getDoc(docRef);
+export const getPublicEventsByCity = async (city: string) => {
+  const q = query(
+    collection(db, "public-events"),
+    where("city", "==", city),
+    orderBy("date", "asc")
+  );
 
-  if (!snapshot.exists()) return null;
+  const snap = await getDocs(q);
 
-  return {
-    id: snapshot.id,
-    ...snapshot.data()
-  };
+  return snap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+  }));
 };

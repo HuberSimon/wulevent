@@ -1,103 +1,154 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
+  --text: #6e6255;
+  --text-h: #2d261f;
+
+  --bg: #f6efe6;
+  --code-bg: #efe6d8;
+
+  --accent: #c89b6d;
+  --accent-soft: rgba(200,155,109,0.15);
+
+  --border: rgba(0,0,0,0.08);
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
   color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* =========================
+   DARK MODE VARIABLES
+========================= */
+[data-theme="dark"] {
+  --text: #e7ddcf;
+  --text-h: #cbb69b;
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  --bg: #1c1712;
+  --code-bg: #2c241c;
+
+  --accent: #caa06f;
+  --border: rgba(255,255,255,0.06);
 }
 
-#root {
-  background: radial-gradient(circle at 10% 20%, #2c912f 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, #2c912f 0%, transparent 40%),
-              #0f172a;
-  width: 100%;
-  max-width: 100%;
+/* =========================
+   GLOBAL LAYOUT
+========================= */
+html, body {
+  height: 100%;
   margin: 0;
-  padding: 0;
+  overflow-x: hidden;
+  background: var(--bg);
 }
 
+/* =========================
+   ROOT BASE
+========================= */
+#root {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  isolation: isolate;
+}
+
+
+/* =========================
+   LIGHT MODE (MODERN / CALM)
+========================= */
+#root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  background:
+    radial-gradient(circle at 20% 20%, rgba(230, 185, 130, 0.18), transparent 55%),
+    radial-gradient(circle at 80% 30%, rgba(210, 160, 100, 0.12), transparent 60%),
+
+    linear-gradient(
+      180deg,
+      #fff6ea 0%,
+      #f6eadb 50%,
+      #f0dcc6 100%
+    );
+
+  filter: blur(70px) saturate(1.05);
+  opacity: 1;
+}
+
+/* =========================
+   DARK MODE (MODERN / SOFT)
+========================= */
+[data-theme="dark"] #root::before {
+  background:
+    radial-gradient(circle at 25% 25%, rgba(160, 120, 80, 0.12), transparent 60%),
+    radial-gradient(circle at 75% 40%, rgba(120, 85, 60, 0.10), transparent 65%),
+
+    linear-gradient(
+      180deg,
+      #14100c 0%,
+      #17120e 50%,
+      #120e0b 100%
+    );
+
+  filter: blur(80px) saturate(1.05);
+}
+
+/* =========================
+   CONTENT WRAPPER
+========================= */
 #root-content {
   width: 1126px;
   max-width: 100%;
-  padding-top: 40px;
   margin: 0 auto;
-  text-align: center;
-  min-height: 100svh;
+  padding-top: 40px;
+
+  position: relative;
+  z-index: 1;
+
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
-
+  text-align: center;
 }
 
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
+/* =========================
+   TYPOGRAPHY
+========================= */
+h1, h2 {
   color: var(--text-h);
 }
 
 h1 {
   font-size: 56px;
-  letter-spacing: -1.68px;
   margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
 }
+
 h2 {
   font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  margin-bottom: 8px;
 }
-p {
-  margin: 0;
+
+/* =========================
+   BUTTONS
+========================= */
+button {
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s ease;
+  font-weight: 500;
+}
+
+button.primary {
+  background: linear-gradient(135deg, #c89b6d, #a97945);
+  color: white;
+}
+
+button.primary:hover {
+  transform: translateY(-2px);
+}
+
+button.secondary {
+  background: rgba(255,255,255,0.4);
+  border: 1px solid var(--border);
 }

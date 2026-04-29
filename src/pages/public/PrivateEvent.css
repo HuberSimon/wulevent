@@ -1,12 +1,14 @@
 /* =========================
-   BASE
+   GLOBAL PAGE
 ========================= */
 .event-container {
-  background: transparent;
-  color: white;
-  min-height: 100vh;
-  font-family: Inter, system-ui, sans-serif;
+  min-height: 100dvh;
   padding-bottom: 80px;
+
+  background: transparent;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  color: var(--text);
 }
 
 /* =========================
@@ -17,15 +19,14 @@
   justify-content: space-between;
   align-items: stretch;
 
-  height: 420px;
+  height: auto;
+  min-height: 440px;
   position: relative;
   overflow: hidden;
 
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: transparent;
+  border-bottom: 1px solid rgba(200,160,110,0.25);
 }
 
-/* LEFT */
 .hero-left {
   flex: 1;
   padding: 64px;
@@ -36,101 +37,217 @@
   gap: 16px;
 
   z-index: 2;
+  position: relative;
 }
 
 .event-title {
-  font-size: 3.2rem;
+  font-size: clamp(1.8rem, 3vw, 3.4rem);
   font-weight: 800;
-  letter-spacing: -1px;
   line-height: 1.1;
+
+  color: var(--text-h);
+  word-break: break-word;
 }
 
-/* RIGHT IMAGE */
+.password-screen{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.password-screen h1{
+  font-size: clamp(1.8rem, 3vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+
+  color: var(--text-h);
+  word-break: break-word;
+}
+
+.password-screen input{
+  width: 300px;
+  margin-top: 10px;
+  display: block;
+  background:  wheat;
+  color: #1a1410;
+
+  padding: 12px 16px;
+  box-shadow: 0 10px 25px rgba(160,120,80,0.25);
+}
+
+.password-screen button{
+  width: 300px;
+  margin-top: 10px;
+  display: block;
+  background: linear-gradient(135deg, #c8a26a, #a77c4a);
+  color: #1a1410;
+
+  padding: 12px 16px;
+  box-shadow: 0 10px 25px rgba(160,120,80,0.25);
+}
+
 .event-img {
   width: 45%;
   height: 100%;
-  object-fit: cover;
-  z-index: 2;
-  filter: saturate(1.05) contrast(1.05);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  object-fit: contain;
+
+  margin: auto;
+
+  z-index: 1;
+  align-self: center;
 }
 
-/* OVERLAY */
 .overlay {
   position: absolute;
   inset: 0;
+
   background: linear-gradient(
     90deg,
-    rgba(7,10,18,0.95) 0%,
-    rgba(7,10,18,0.6) 40%,
-    rgba(7,10,18,0.1) 100%
+    rgba(246,239,230,0.95),
+    rgba(246,239,230,0.6),
+    transparent
   );
-  z-index: 1;
 }
 
-/* =========================
-   CONTENT
-========================= */
+.creator-panel {
+  margin-top: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  width: 100%;
+
+  padding: 14px;
+  border-radius: 16px;
+
+  background: rgba(255, 240, 220, 0.35);
+  border: 1px solid rgba(200,160,110,0.25);
+
+  backdrop-filter: blur(12px);
+
+  box-sizing: border-box;
+}
+
+.creator-actions { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 10px; 
+  justify-content: space-between; 
+}
+
+.password-card {
+  border-radius: 16px;
+  background: rgba(255, 240, 220, 0.35);
+  border: 1px solid rgba(200,160,110,0.25);
+}
+
+.password-card button {
+  width: 100%;
+  margin-top: 10px;
+  display: block;
+}
+
+.password-row {
+  padding-left: 20px;
+  padding-right: 20px;
+  display: flex; 
+  flex-wrap: wrap; 
+  justify-content: space-between;
+}
+
+button {
+  font-family: inherit;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.open-rsvp-btn,
+.edit-password-btn,
+.creator-actions button,
+button.active {
+  background: linear-gradient(135deg, #c8a26a, #a77c4a);
+  color: #1a1410;
+
+  padding: 12px 16px;
+  box-shadow: 0 10px 25px rgba(160,120,80,0.25);
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+/* secondary buttons */
+.copy-link-btn,
+.toggle-btn {
+  width: 100%;
+  background: rgba(255,240,220,0.1);
+  border: 1px solid rgba(200,160,110,0.25);
+  color: var(--text);
+
+  padding: 10px 14px;
+}
+
 .event-content {
   margin: 40px;
-  padding: 28px 32px;
+  padding: 28px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
 
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.35);
   border-radius: 18px;
 
-  backdrop-filter: blur(14px);
-}
-
-/* =========================
-   BUTTON SYSTEM
-========================= */
-button {
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-  border: none;
-}
-
-/* primary */
-.open-rsvp-btn,
-.edit-password-btn,
-button.active {
-  background: linear-gradient(135deg, #4caf50, #2e7d32);
-  color: white;
-  padding: 12px 16px;
-  box-shadow: 0 10px 30px rgba(76,175,80,0.15);
-}
-
-.open-rsvp-btn:hover,
-.edit-password-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 40px rgba(76,175,80,0.25);
-}
-
-/* secondary */
-.copy-link-btn,
-.toggle-btn {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: white;
-  padding: 10px 14px;
   backdrop-filter: blur(10px);
 }
 
-.copy-link-btn:hover,
-.toggle-btn:hover {
-  background: rgba(255,255,255,0.08);
-  transform: translateY(-1px);
+.event-content p {
+  white-space: pre-line;
 }
 
-/* =========================
-   ATTENDEES
-========================= */
+.event-content-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-save-btn {
+  background: linear-gradient(135deg, #c8a26a, #a77c4a);
+  color: #1a1410;
+
+  box-shadow: 0 10px 25px rgba(160,120,80,0.25);
+
+  margin-top: 16px;
+  padding: 12px 16px;
+
+  border-radius: 12px;
+  border: none;
+
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.login-save-btn:hover {
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"].event-content {
+  background: rgba(50,35,25,0.6);
+  border: 1px solid rgba(200,160,110,0.15);
+}
+
 .attendees {
   margin: 40px;
   display: flex;
@@ -138,213 +255,229 @@ button.active {
   gap: 12px;
 }
 
-.attendees h2 {
-  font-size: 18px;
-  opacity: 0.75;
+.qr-section {
+  margin-top: 30px;
+  text-align: center;
 }
 
 .attendee {
   padding: 16px;
   border-radius: 14px;
 
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(200,160,110,0.2);
 
-  transition: all 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .attendee:hover {
   transform: translateY(-2px);
-  background: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .attendee {
+  background: rgba(40,30,20,0.6);
 }
 
 /* =========================
-   CREATOR PANEL (modern card stack)
-========================= */
-.creator-panel {
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.creator-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* glass card */
-.password-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  padding: 16px;
-  border-radius: 14px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-}
-
-/* Titel */
-.password-card h3 {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.75;
-  font-weight: 600;
-}
-
-/* Zeile */
-.password-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  font-size: 14px;
-}
-
-/* Passwort Highlight */
-.password-row strong {
-  padding: 4px 10px;
-  border-radius: 8px;
-
-  background: rgba(76, 175, 80, 0.15);
-  color: #4caf50;
-
-  font-weight: 600;
-}
-
-/* Button */
-.edit-password-btn {
-  padding: 10px 12px;
-
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.edit-password-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
-}
-
-/* =========================
-   MODAL SYSTEM
+   MODALS
 ========================= */
 .modal-overlay {
   position: fixed;
   inset: 0;
 
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(8px);
-
   display: flex;
   justify-content: center;
   align-items: center;
 
+  background: rgba(10,8,6,0.55);
+  backdrop-filter: blur(10px);
+
+  padding: 20px;
   z-index: 9999;
 }
-
-.modal {
-  width: 92%;
-  max-width: 420px;
-
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255,255,255,0.08);
-
-  border-radius: 18px;
-  padding: 24px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  backdrop-filter: blur(18px);
-
-  animation: pop 0.18s ease;
+.rsvp-modal-close,
+.modal-close { 
+  position: fixed; 
+  margin-right: 10px; 
+  margin-top: 10px; 
+  right: 0; 
+  top: 0; 
+  width: 34px; 
+  height: 34px; 
+  border-radius: 10px; 
+  background: rgba(200,160,110,0.12); 
 }
 
-/* inputs */
-.modal input,
-.modal textarea {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: white;
-
-  padding: 10px 12px;
-  border-radius: 10px;
-
-  outline: none;
+.rsvp-modal, .modal {
+width: 100%; 
+max-width: 480px; 
+display: flex; 
+flex-direction: column; 
+align-items: center; 
+border-radius: 22px; 
+padding: 22px; 
+background: rgba(255, 245, 232, 0.8); 
+border: 1px solid rgba(200,160,110,0.25); 
+backdrop-filter: blur(18px); 
+box-shadow: 0 30px 80px rgba(0,0,0,0.25); 
+animation: pop 0.25s ease;
 }
 
-.modal input:focus,
-.modal textarea:focus {
-  border-color: #4caf50;
+.rsvp-header { 
+  position: relative; 
+  margin-bottom: 14px; 
 }
 
-/* close */
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  opacity: 0.6;
-  cursor: pointer;
+.rsvp-header h2 { 
+  margin: 0; 
+  color: var(--text-h); 
+} 
+
+.rsvp-header p { 
+  margin: 4px 0 0; 
+  font-size: 14px; 
+  opacity: 0.7; 
 }
 
-.modal-close:hover {
-  opacity: 1;
+.rsvp-body input,
+.rsvp-body textarea { 
+  width: 100%; 
+  max-width: 380px; 
+  margin-top: 10px; 
+  padding: 12px 14px; 
+  border-radius: 14px; 
+  border: 1px solid rgba(200,160,110,0.25); 
+  background: rgba(255,255,255,0.4); 
+  outline: none; 
+  color: var(--text); 
 }
 
-/* RSVP buttons */
-.rsvp-buttons {
-  display: flex;
-  gap: 10px;
+.rsvp-body textarea { 
+  min-height: 90px; 
 }
 
-.rsvp-buttons button {
-  flex: 1;
-  padding: 10px 12px;
-
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: white;
-
-  border-radius: 10px;
-  cursor: pointer;
-
-  transition: all 0.2s ease;
-  font-weight: 500;
+.rsvp-choice { 
+  display: flex; 
+  gap: 10px; 
+  margin-top: 14px; 
 }
 
-/* hover */
-.rsvp-buttons button:hover {
-  transform: translateY(-1px);
-  background: rgba(255,255,255,0.08);
+.rsvp-choice button { 
+  flex: 1; 
+  padding: 12px; 
+  background: rgba(255,255,255,0.3); 
+}
+
+.rsvp-choice .active { 
+  background: linear-gradient(135deg, #c89b6d, #a97945); 
+  color: white; 
+}
+
+.rsvp-submit { 
+  width: 100%; 
+  margin-top: 80px; 
+  padding: 14px; 
+  border-radius: 14px; 
+  background: linear-gradient(135deg, #c89b6d, #a97945); 
+  color: white; 
+}
+
+.modal-header { 
+  position: relative; 
+  margin-bottom: 14px; 
+}
+
+.modal-header h2 { 
+  margin: 0; 
+  color: var(--text-h); 
+}
+
+.modal-header p { 
+  margin: 4px 0 0; 
+  font-size: 14px; 
+  opacity: 0.7; 
+}
+
+.modal input { 
+  width: 100%;
+  max-width: 380px; 
+  margin-top: 10px; 
+  padding: 12px 14px; 
+  border-radius: 14px; 
+  border: 1px solid rgba(200,160,110,0.25); 
+  background: rgba(255,255,255,0.4); 
+  outline: none; 
+  color: var(--text); 
+}
+
+.modal h2, 
+.modal p { 
+  text-align: center; 
+}
+
+.modal-save { 
+  width: 100%; 
+  margin-top: 16px; 
+}
+
+.modal-save button { 
+  width: 100%; 
+  padding: 14px; 
+  border-radius: 14px; 
+  background: linear-gradient(135deg, #c89b6d, #a97945); 
+  color: white; 
+  font-weight: 600; 
+  border: none; 
+  cursor: pointer; 
+}
+
+.modal-save button:hover { 
+  transform: translateY(-2px); 
+}
+
+[data-theme="dark"] .rsvp-modal,
+[data-theme="dark"] .modal {
+  background: rgba(35,25,18,0.9);
 }
 
 /* =========================
-   ACTIVE STATES
+   ANIMATION
 ========================= */
-
-/* KOMME = GRÜN */
-.rsvp-buttons button.yes.active {
-  background: linear-gradient(135deg, #4caf50, #2e7d32);
-  border-color: transparent;
-  box-shadow: 0 10px 25px rgba(76,175,80,0.25);
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-/* ABSAGE = ROT */
-.rsvp-buttons button.no.active {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  border-color: transparent;
-  box-shadow: 0 10px 25px rgba(239,68,68,0.25);
+/* =========================
+   MOBILE FIX
+========================= */
+@media (max-width: 900px) {
+  .event-hero {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .event-img {
+    width: 100%;
+    height: 260px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .hero-left {
+    padding: 28px;
+  }
+
+  .event-content,
+  .attendees {
+    margin: 20px;
+  }
 }

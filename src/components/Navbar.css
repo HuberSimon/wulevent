@@ -1,16 +1,25 @@
+/* =========================
+   BASE NAVBAR
+========================= */
 .navbar {
   position: fixed;
   width: 100vw;
-  height: 40px; 
+  height: 40px;
   top: 0;
   left: 0;
-  background: #363636;
+
+  background: #2a2622; /* dunkler sand / espresso */
+  border-bottom: 1px solid rgba(200, 160, 110, 0.15);
+
   z-index: 1000;
 }
 
+/* =========================
+   CONTAINER
+========================= */
 .navbar-container {
   display: flex;
-  height: 40px; 
+  height: 40px;
   justify-content: space-between;
   align-items: center;
   position: relative;
@@ -20,44 +29,56 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  position: relative;
 }
 
+/* =========================
+   LOGO
+========================= */
 .logo {
   display: flex;
   align-items: center;
   text-decoration: none;
+
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 700;
+
   padding-left: 10px;
-  color: #43a047;
+
+  color: #d6b27a; /* sand gold */
 }
 
 .logo-img {
   height: 40px;
   object-fit: contain;
   max-width: 75%;
-  filter: brightness(0.6);
+
+  filter: brightness(0.8);
 }
 
+/* =========================
+   BURGER
+========================= */
 .burger {
   width: 30px;
   height: 20px;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   cursor: pointer;
   z-index: 1100;
+
   padding-right: 20px;
+  padding-left: 20px;
 }
 
 .burger span {
   height: 3px;
-  background: white;
+  background: #e7d6c2;
   border-radius: 2px;
   transition: 0.3s;
 }
-
 
 .burger.open span:nth-child(1) {
   transform: rotate(45deg) translateY(8px);
@@ -69,95 +90,122 @@
   transform: rotate(-45deg) translateY(-8px);
 }
 
+/* =========================
+   MENU
+========================= */
 .menu {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 250px;
-  height: 100vh;
-  background: #363636;
+
+  width: 240px;
+  height: 100%;
+
+  background: linear-gradient(
+    180deg,
+    #2a2622,
+    #201c18
+  );
+
   display: flex;
   flex-direction: column;
-  padding: 80px 20px;
-  transition: 0.3s;
+  justify-content: space-between;
+
+  transition: right 0.3s ease;
   z-index: 1050;
+
+  border-left: 1px solid rgba(200, 160, 110, 0.15);
 }
 
 .menu.active {
   right: 0;
 }
 
+/* LINKS */
 .menu a {
-  color: rgb(255, 255, 255);
+  color: #e7d6c2;
   text-decoration: none;
-  margin-bottom: 20px;
-  font-size: 18px;
+
+  margin-bottom: 18px;
+  font-size: 16px;
+
+  transition: 0.2s;
 }
 
+.menu a:hover {
+  color: #d6b27a;
+}
+
+/* =========================
+   MENU SECTIONS
+========================= */
+.menu-top {
+  padding-top: 60px;
+  padding-left: 14px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-bottom {
+  padding-left: 14px;
+  padding-bottom: 20px;
+
+  display: flex;
+  align-items: center;
+}
+
+/* =========================
+   OVERLAY
+========================= */
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background:black;
+  inset: 0;
+
+  background: rgba(10, 10, 10, 0.6);
+
   opacity: 0;
   visibility: hidden;
   transition: 0.3s;
+
   z-index: 1040;
 }
 
 .overlay.show {
-  opacity: 0.5;
+  opacity: 1;
   visibility: visible;
 }
 
-.login-btn {
-  color: #4caf50;
-  border: 2px solid #4caf50;
-  padding: 0px 12px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-size: 15px;
-  margin-right: 10px;
-  transition: all 0.3s;
-  z-index: 1100;
+/* =========================
+   BUTTONS (LOGIN / LOGOUT)
+========================= */
+.login-btn,
+.logout-btn {
+  color: #d6b27a;
+  border: 1px solid rgba(214, 178, 122, 0.4);
+
+  padding: 0 12px;
+  border-radius: 8px;
+
+  font-size: 14px;
+
+  background: transparent;
+
+  transition: 0.2s;
 }
 
-.login-btn:hover {
-  background: #43a047;
-  color: #40474d;
+.login-btn:hover,
+.logout-btn:hover {
+  background: rgba(214, 178, 122, 0.15);
+  transform: translateY(-1px);
 }
 
-.login-btn.hide {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease;
-}
-
+/* =========================
+   USER INFO
+========================= */
 .user-info {
   padding: 10px;
-}
-
-.logout-btn {
-  color: #4caf50;
-  border: 1px solid #4caf50;
-  padding: 0px 12px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-size: 15px;
-  margin-right: 10px;
-  transition: all 0.3s;
-  z-index: 1100;
-}
-
-.logout-btn:hover {
-  background: #43a047;
-  color: #40474d;
-}
-
-.logout-btn.hide {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease;
+  color: #e7d6c2;
+  font-size: 14px;
 }
