@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import "./EventBoard.css";
+import { getEventById } from "../../services/database/private-event-service";
 
 interface Post {
   id?: string;
@@ -44,8 +45,19 @@ export default function EventBoard({
   const [posts, setPosts] = useState<Post[]>([]);
   const [text, setText] = useState("");
   const [color, setColor] = useState(COLORS[0]);
+  const [eventName, setEventName] = useState<string>("");
 
   useEffect(() => {
+    const load = async () => {
+      const event = await getEventById(eventId);
+
+      if (event) {
+        setEventName(event.title);
+      }
+    };
+
+    load();
+
     const q = query(
       collection(db, "private-events", eventId, "posts"),
       orderBy("createdAt", "desc")
@@ -81,7 +93,7 @@ export default function EventBoard({
     <div className="board-container">
 
       <div className="board-info">
-        <h1>Pinnwand</h1>
+        <h1>Pinnwand <br /> {eventName}</h1>
         <p>Teile Gedanken mit allen Teilnehmern</p>
       </div>
 

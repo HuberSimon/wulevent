@@ -359,6 +359,7 @@ animation: pop 0.25s ease;
 .rsvp-body textarea { 
   width: 100%; 
   max-width: 380px; 
+  box-sizing: border-box;
   margin-top: 10px; 
   padding: 12px 14px; 
   border-radius: 14px; 

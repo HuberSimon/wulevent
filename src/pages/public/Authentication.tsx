@@ -62,7 +62,36 @@ const Authentication: React.FC = () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      toast.error(err.message)
+      console.error(err)
+        switch (err.code) {
+          case "auth/user-not-found":
+            toast.error("Benutzer existiert nicht")
+            break
+
+          case "auth/invalid-credential":
+            toast.error("Passwort ist falsch")
+            break
+
+          case "auth/invalid-email":
+            toast.error("Ungültige E-Mail Adresse")
+            break
+
+          case "auth/too-many-requests":
+            toast.error("Zu viele Versuche. Bitte später erneut versuchen")
+            break
+
+          case "auth/email-already-in-use":
+            toast.error("E-Mail wird bereits verwendet")
+            break
+
+          case "auth/weak-password":
+            toast.error("Passwort ist zu schwach")
+            break
+
+          default:
+            toast.error("Ein Fehler ist aufgetreten")
+            break
+        }
     }
 
     setLoading(false)
