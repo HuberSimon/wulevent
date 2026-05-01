@@ -37,7 +37,6 @@ const PublicEvent = () => {
 
       <div className="divider" />
 
-      {/* REGION SELECT */}
       <div className="city-selector">
         {cities.map((city) => (
           <button
@@ -50,15 +49,12 @@ const PublicEvent = () => {
         ))}
       </div>
 
-      {/* LOADING */}
       {loading && <p>Lade Events...</p>}
 
-      {/* EMPTY */}
       {!loading && events.length === 0 && (
         <p>Keine Events in dieser Region 😴</p>
       )}
 
-      {/* EVENTS */}
       <div className="event-grid">
         {events.map((event) => (
           <div key={event.id} className="event-card">

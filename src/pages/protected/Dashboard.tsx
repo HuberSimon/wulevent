@@ -58,9 +58,6 @@ const Dashboard = () => {
         })
       );
 
-      // =========================
-      // INVITED EVENTS
-      // =========================
       const invitedSnap = await getDocs(
         collection(db, "users", user.uid, "invitedEvents")
       );
@@ -138,9 +135,6 @@ const Dashboard = () => {
 
       {loading && <p>Lade Events...</p>}
 
-      {/* =========================
-          INVITED EVENTS
-      ========================= */}
       <h2>Eingeladen</h2>
 
       {!loading && invitedEvents.length === 0 && (
@@ -164,9 +158,6 @@ const Dashboard = () => {
 
       <div className="divider" />
 
-      {/* =========================
-          CREATED EVENTS
-      ========================= */}
       <h2>Meine Veranstaltungen</h2>
 
       {!loading && createdEvents.length === 0 && (
