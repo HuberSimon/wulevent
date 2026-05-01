@@ -14,6 +14,7 @@ import { useEffect, useState, type JSX } from 'react'
 import { Toaster } from 'react-hot-toast'
 import CreatePublicEvent from './pages/protected/CreatePublicEvent'
 import EventBoard from './pages/protected/EventBoard'
+import EventMoments from './pages/protected/EventMoments'
 import { getUserDisplayName } from './services/database/user-service'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -82,6 +83,17 @@ function AnimatedRoutes() {
           />
 
           <Route
+            path="/event/:id/moments"
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <EventMomentsWrapper />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/public-events"
             element={
               <PublicLayout>
@@ -138,6 +150,34 @@ const EventBoardWrapper = () => {
 
   return (
     <EventBoard
+      eventId={id}
+      userId={user.uid}
+      userName={name}
+    />
+  )
+}
+
+const EventMomentsWrapper = () => {
+  const { id } = useParams()
+  const { user } = useAuth()
+
+  const [name, setName] = useState<string | null>(null)
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user?.uid) return
+
+      const displayName = await getUserDisplayName(user.uid)
+      setName(displayName)
+    }
+
+    load()
+  }, [user])
+
+  if (!id || !user || !name) return null
+
+  return (
+    <EventMoments
       eventId={id}
       userId={user.uid}
       userName={name}

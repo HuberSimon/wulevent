@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import "./PrivateEvent.css";
+import { getUser } from "../../services/database/user-service";
 
 const PrivateEvent = () => {
   const { id } = useParams();
@@ -19,13 +20,16 @@ const PrivateEvent = () => {
   const [attendees, setAttendees] = useState<any[]>([]);
 
   const [inputPassword, setInputPassword] = useState("");
-  const [accessGranted, setAccessGranted] = useState(false);
+  const [accessGranted, setAccessGranted] = useState(() => {
+    return sessionStorage.getItem(`event-access-${id}`) === "true";
+  });
   const [error, setError] = useState("");
 
   const [showRSVPModal, setShowRSVPModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [guests, setGuests] = useState(1);
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState("yes");
@@ -40,38 +44,48 @@ const PrivateEvent = () => {
   const isLoggedIn = !!user;
   const navigate = useNavigate();
 
-useEffect(() => {
-  const load = async () => {
-    if (!id) return;
+  useEffect(() => {
+    const load = async () => {
+      if (!id) return;
 
-    const eventData = await getEventById(id);
-    const rsvps = await getRSVPs(id);
+      const eventData = await getEventById(id);
+      const rsvps = await getRSVPs(id);
 
-    if (!eventData) return;
+      if (!eventData) return;
 
-    setEvent({
-      ...eventData,
-      showAttendees: eventData?.showAttendees ?? true
-    });
 
-    setAttendees(rsvps);
-
-    if (localStorage.getItem(rsvpKey)) {
-      setAlreadyRSVP(true);
-    }
-
-    if (user && user.uid !== eventData.creatorId) {
-      try {
-        await saveInvitedEvent(user.uid, id);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (err) {
-        console.log("Event evtl. schon gespeichert");
+      if(isLoggedIn){
+        const userDB = await getUser(user.uid);
+        if (userDB) {
+          setFirstName(userDB.firstName);
+          setLastName(userDB.lastName);
+        }
       }
-    }
-  };
+      
 
-  load();
-}, [id, user]);
+      setEvent({
+        ...eventData,
+        showAttendees: eventData?.showAttendees ?? true
+      });
+
+      setAttendees(rsvps);
+
+      if (localStorage.getItem(rsvpKey)) {
+        setAlreadyRSVP(true);
+      }
+
+      if (user && user.uid !== eventData.creatorId) {
+        try {
+          await saveInvitedEvent(user.uid, id);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+          console.log("Event evtl. schon gespeichert");
+        }
+      }
+    };
+
+    load();
+  }, [id, user]);
 
   useEffect(() => {
     document.body.style.overflow = showRSVPModal || showPasswordModal
@@ -87,6 +101,7 @@ useEffect(() => {
   const checkPassword = () => {
     if (inputPassword === event.password) {
       setAccessGranted(true);
+      sessionStorage.setItem(`event-access-${id}`, "true");
       setError("");
     } else {
       setError("Falsches Passwort");
@@ -122,15 +137,16 @@ useEffect(() => {
   };
 
   const handleRSVP = async () => {
-    if (!name) return alert("Bitte Name eingeben");
+    if (!firstName) return alert("Bitte Vorname eingeben");
+    if (!lastName) return alert("Bitte Nachname eingeben");
 
     const exists = attendees.find(
-      (a) => a.name.toLowerCase() === name.toLowerCase()
+      (a) => a.firstName.toLowerCase() === firstName.toLowerCase() && a.lastName.toLowerCase() === lastName.toLowerCase()
     );
 
     if (exists) return alert("Name existiert bereits");
 
-    await addRSVP(id!, { name, guests, comment, status });
+    await addRSVP(id!, { firstName, lastName, guests, comment, status });
 
     const updated = await getRSVPs(id!);
     setAttendees(updated);
@@ -138,7 +154,8 @@ useEffect(() => {
     localStorage.setItem(rsvpKey, "true");
     setAlreadyRSVP(true);
 
-    setName("");
+    setFirstName("");
+    setLastName("");
     setGuests(1);
     setComment("");
     setShowRSVPModal(false);
@@ -250,7 +267,7 @@ useEffect(() => {
                   Pinnwand
                 </button>
 
-                <button className="event-post-btn" onClick={() => navigate(`/event/${id}/board`)}>
+                <button className="event-post-btn" onClick={() => navigate(`/event/${id}/moments`)}>
                   Momente
                 </button>
 
@@ -342,11 +359,17 @@ useEffect(() => {
 
             <div className="rsvp-body">
 
-              <input
-                placeholder="Dein Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+              {firstName === "" && (<input
+                placeholder="Vorname"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />)}
+
+              {lastName === "" && (<input
+                placeholder="Nachname"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />)}
 
               <input
                 value={guests}

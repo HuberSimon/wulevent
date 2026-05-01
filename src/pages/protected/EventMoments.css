@@ -1,0 +1,149 @@
+.board-container {
+  padding: 40px;
+  min-height: 100vh;
+}
+
+.board-info h1 {
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+
+  word-break: break-word;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.post-add-card {
+  background: rgba(200, 155, 109, 0.15);
+  border: 2px dashed var(--accent);
+
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  min-height: 160px;
+  box-sizing: border-box;
+
+  transition: 0.2s ease;
+}
+
+.post-add-card:hover {
+  transform: translateY(-2px);
+}
+
+.post-add-card textarea {
+  width: 100%;
+  min-height: 80px;
+
+  border-radius: 8px;
+  padding: 10px;
+
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.3);
+
+  resize: none;
+  outline: none;
+
+  font-size: 14px;
+}
+
+.post-add-card button {
+  align-self: flex-end;
+
+  padding: 10px 14px;
+  border-radius: 8px;
+
+  border: none;
+  background: linear-gradient(135deg, #c8a26a, #a77c4a);
+
+  color: #1a1410;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.post-add-card button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.upload-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px;
+  border-radius: 12px;
+
+  border: 2px dashed var(--border);
+  background: rgba(255, 255, 255, 0.25);
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.upload-label:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.upload-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateY(-2px);
+}
+
+.upload-text strong {
+  display: block;
+  color: rgb(68, 67, 67);
+  font-size: 14px;
+}
+
+.upload-text span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.preview-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.preview-img {
+  width: 60px;
+  height: 60px;
+
+  object-fit: cover;
+
+  border-radius: 8px;
+  border: 1px solid var(--border);
+
+  transition: 0.2s;
+}
+
+.preview-img:hover {
+  transform: scale(1.05);
+}
