@@ -242,6 +242,23 @@ useEffect(() => {
 
             </div>
           )}
+
+          {isLoggedIn && (
+            <div className="event-features">
+
+                <button className="event-board-btn" onClick={() => navigate(`/event/${id}/board`)}>
+                  Pinnwand
+                </button>
+
+                <button className="event-post-btn" onClick={() => navigate(`/event/${id}/board`)}>
+                  Momente
+                </button>
+
+            </div>
+          )}
+
+
+
         </div>
 
         <img

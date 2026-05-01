@@ -17,6 +17,7 @@
   backdrop-filter: blur(16px);
 
   box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+
 }
 
 [data-theme="dark"] .login-container {
@@ -26,11 +27,22 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.35);
 }
 
+.login-container-name {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
 .login-container h1 {
-  color: var(--text-h);
-  font-weight: 700;
   margin-bottom: 18px;
   padding-bottom: 20px;
+
+  font-size: clamp(1.8rem, 3vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-h);
+  word-break: break-word;
 }
 
 .login-container input {

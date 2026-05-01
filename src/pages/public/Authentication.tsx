@@ -8,13 +8,15 @@ import {
   updateProfile
 } from "firebase/auth"
 
-import { auth } from "../../firebase"
+import { auth, db } from "../../firebase"
 import "./Authentication.css"
+import { doc, setDoc } from "firebase/firestore"
 
 const Authentication: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true)
 
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -23,7 +25,7 @@ const Authentication: React.FC = () => {
   const redirectEvent = localStorage.getItem("redirectEvent");
 
   const handleSubmit = async () => {
-    if (!email || !password || (!isLogin && !name)) {
+    if (!email || !password || (!isLogin && (!firstName || !lastName))) {
       toast.error("Bitte alle Felder ausfüllen")
       return
     }
@@ -36,9 +38,16 @@ const Authentication: React.FC = () => {
         toast.success("Willkommen zurück 👋")
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, password)
+        const user = result.user
 
-        await updateProfile(result.user, {
-          displayName: name
+        await updateProfile(user, {
+          displayName: firstName
+        })
+
+        await setDoc(doc(db, "users", user.uid), {
+          firstName: firstName,
+          lastName: lastName,
+          email: email
         })
 
         toast.success("Account erstellt 🎉")
@@ -64,11 +73,19 @@ const Authentication: React.FC = () => {
       <h1>{isLogin ? "Login" : "Account erstellen"}</h1>
 
       {!isLogin && (
-        <input
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <div className="login-container-name">
+          <input
+            placeholder="Vorname"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+
+            <input
+            placeholder="Nachname"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </div>
       )}
 
       <input
