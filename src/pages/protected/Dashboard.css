@@ -1,10 +1,15 @@
-/* =========================
-   DASHBOARD
-========================= */
 .dashboard {
   padding: 40px;
   min-height: 100vh;
   background: transparent;
+}
+
+.dashboard-info h1 {
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+
+  word-break: break-word;
 }
 
 .dashboard-info p {
@@ -17,18 +22,12 @@
   margin: 20px 0;
 }
 
-/* =========================
-   GRID
-========================= */
 .event-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
 }
 
-/* =========================
-   EVENT CARD
-========================= */
 .event-card {
   position: relative;
 
@@ -47,9 +46,6 @@
   transform: translateY(-5px);
 }
 
-/* =========================
-   DELETE BUTTON
-========================= */
 .delete-btn {
   position: absolute;
   top: 10px;
@@ -80,9 +76,6 @@
   transform: scale(1.1);
 }
 
-/* =========================
-   ADD CARD
-========================= */
 .add-card {
   background: rgba(200,155,109,0.15);
   border: 2px dashed var(--accent);

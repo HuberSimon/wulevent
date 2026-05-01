@@ -4,7 +4,7 @@ import { createPublicEvent } from "../../services/database/public-event-service"
 import toast from "react-hot-toast";
 import "./CreatePublicEvent.css";
 
-const cities = ["Eggenfelden", "München", "Berlin", "Hamburg"];
+const cities = ["Eggenfelden", "Mühldorf", "Burghausen", "Altötting", "Pfarrkirchen"];
 
 const CreatePublicEvent = () => {
   const navigate = useNavigate();
@@ -60,14 +60,12 @@ const CreatePublicEvent = () => {
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        {/* CITY SELECT */}
         <select value={city} onChange={(e) => setCity(e.target.value)}>
           {cities.map((c) => (
             <option key={c}>{c}</option>
           ))}
         </select>
 
-        {/* DATE */}
         <input
           type="date"
           value={date}
