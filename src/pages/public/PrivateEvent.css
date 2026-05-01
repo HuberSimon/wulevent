@@ -11,9 +11,6 @@
   color: var(--text);
 }
 
-/* =========================
-   HERO
-========================= */
 .event-hero {
   display: flex;
   justify-content: space-between;
@@ -174,6 +171,8 @@ button {
 .open-rsvp-btn,
 .edit-password-btn,
 .creator-actions button,
+.event-board-btn,
+.event-post-btn,
 button.active {
   background: linear-gradient(135deg, #c8a26a, #a77c4a);
   color: #1a1410;
@@ -195,6 +194,23 @@ button:hover {
   color: var(--text);
 
   padding: 10px 14px;
+}
+
+.event-features {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  flex-direction: column;
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 240, 220, 0.35);
+  border: 1px solid rgba(200,160,110,0.25);
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+  justify-content: space-between; 
+
 }
 
 .event-content {
