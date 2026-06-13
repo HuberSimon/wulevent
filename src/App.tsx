@@ -1,21 +1,31 @@
 import './App.css'
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useParams
+} from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useState, type JSX } from 'react'
+import { Toaster } from 'react-hot-toast'
+
 import Home from './pages/public/Home'
 import Authentication from './pages/public/Authentication'
 import PrivateEvent from './pages/public/PrivateEvent'
-import PublicEvent from './pages/public/PublicEvents'
 import Dashboard from './pages/protected/Dashboard'
 import CreateEvent from './pages/protected/CreateEvent'
-import PublicLayout from './layouts/PublicLayout'
-import ProtectedLayout from './layouts/ProtectedLayout'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import { useEffect, useState, type JSX } from 'react'
-import { Toaster } from 'react-hot-toast'
-import CreatePublicEvent from './pages/protected/CreatePublicEvent'
 import EventBoard from './pages/protected/EventBoard'
 import EventMoments from './pages/protected/EventMoments'
+
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { EventProvider } from './context/EventContext'
+
 import { getUserDisplayName } from './services/database/user-service'
+
+import BasicNavbar from './components/BasicNavbar'
+import EventNavbar from './components/EventNavbar'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user } = useAuth()
@@ -24,96 +34,84 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
 function AnimatedRoutes() {
   const location = useLocation()
+  const isEventRoute = location.pathname.startsWith("/event/")
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.25 }}
-      >
-        <Routes location={location}>
+    <>
+    <BasicNavbar />
+    {isEventRoute && <EventNavbar />}
 
-          <Route path="/" element={<PublicLayout><HomeForward /></PublicLayout>} />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25 }}
+        >
+          <Routes location={location}>
 
-          <Route path="/login" element={<PublicLayout><LoginRedirect /></PublicLayout>} />
+            <Route
+              path="/"
+              element={
+                  <HomeForward />
+              }
+            />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Dashboard />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/login"
+              element={
+                  <LoginRedirect />
+              }
+            />
 
-          <Route
-            path="/create-event"
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <CreateEvent />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                    <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/event/:id"
-            element={
-              <PublicLayout>
-                <PrivateEvent />
-              </PublicLayout>
-            }
-          />
+            <Route
+              path="/create-event"
+              element={
+                <ProtectedRoute>
+                    <CreateEvent />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/event/:id/board"
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <EventBoardWrapper />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/event/:id"
+              element={
+                  <PrivateEvent />
+              }
+            />
 
-          <Route
-            path="/event/:id/moments"
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <EventMomentsWrapper />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/event/:id/board"
+              element={
+                <ProtectedRoute>
+                    <EventBoardWrapper />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/public-events"
-            element={
-              <PublicLayout>
-                <PublicEvent />
-              </PublicLayout>
-            }
-          />
+            <Route
+              path="/event/:id/moments"
+              element={
+                <ProtectedRoute>
+                    <EventMomentsWrapper />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/create-public-event"
-            element={
-              <PublicLayout>
-                <CreatePublicEvent />
-              </PublicLayout>
-            }
-          />
-
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
+          </Routes>
+        </motion.div>
+      </AnimatePresence>
+    </>
   )
 }
 
@@ -132,21 +130,18 @@ const HomeForward = () => {
 const EventBoardWrapper = () => {
   const { id } = useParams()
   const { user } = useAuth()
-
   const [name, setName] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
-      if (!user?.uid) return;
-
-      const displayName = await getUserDisplayName(user.uid);
-      setName(displayName);
+      if (!user?.uid) return
+      const displayName = await getUserDisplayName(user.uid)
+      setName(displayName)
     }
-
     load()
   }, [user])
 
-  if (!id || !user || !name) return null;
+  if (!id || !user || !name) return null
 
   return (
     <EventBoard
@@ -160,17 +155,14 @@ const EventBoardWrapper = () => {
 const EventMomentsWrapper = () => {
   const { id } = useParams()
   const { user } = useAuth()
-
   const [name, setName] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
       if (!user?.uid) return
-
       const displayName = await getUserDisplayName(user.uid)
       setName(displayName)
     }
-
     load()
   }, [user])
 
@@ -185,15 +177,15 @@ const EventMomentsWrapper = () => {
   )
 }
 
-
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Toaster position="top-right" />
-
-        <AnimatedRoutes />
-      </Router>
+      <EventProvider>
+        <Router>
+          <Toaster position="top-right" />
+          <AnimatedRoutes />
+        </Router>
+      </EventProvider>
     </AuthProvider>
   )
 }

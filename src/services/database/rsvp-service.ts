@@ -4,6 +4,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 
@@ -12,7 +13,13 @@ import { db } from "../../firebase";
 ========================= */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addRSVP = async (eventId: string, data: any) => {
-  await addDoc(collection(db, "private-events", eventId, "attendees"), data);
+  await addDoc(
+    collection(db, "private-events", eventId, "attendees"),
+    {
+      ...data,
+      group: "",
+    }
+  );
 };
 
 /* =========================
@@ -71,5 +78,24 @@ export const removeRSVPByName = async (
 
   await deleteDoc(
     doc(db, "private-events", eventId, "attendees", match.id)
+  );
+};
+
+export const updateRSVPGroup = async (
+  eventId: string,
+  attendeeId: string,
+  group: string
+) => {
+  await updateDoc(
+    doc(
+      db,
+      "private-events",
+      eventId,
+      "attendees",
+      attendeeId
+    ),
+    {
+      group,
+    }
   );
 };
