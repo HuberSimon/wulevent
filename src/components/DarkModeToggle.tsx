@@ -28,7 +28,7 @@ const DarkModeToggle = () => {
 
   return (
     <button className="secondary" onClick={toggle}>
-      {dark ? "☀️ Light Mode" : "🌙 Dark Mode"}
+      {dark ? "☀️" : "🌙"}
     </button>
   )
 }

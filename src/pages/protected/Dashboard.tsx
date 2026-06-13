@@ -176,7 +176,17 @@ const Dashboard = () => {
           >
             <button
               className="delete-btn"
-              onClick={(e) => handleDelete(e, event.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                const confirmed = window.confirm(
+                  "Möchtest du diese Veranstaltung wirklich löschen?"
+                );
+
+                if (confirmed) {
+                  handleDelete(e, event.id)
+                }
+              }}
               disabled={deletingId === event.id}
             >
               {deletingId === event.id ? "..." : "✕"}

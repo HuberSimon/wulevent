@@ -1,0 +1,51 @@
+.basic-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+
+  background: #2a2622;
+  border-bottom: 1px solid rgba(200,160,110,.15);
+  z-index: 1000;
+}
+
+.basic-navbar-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* LEFT */
+.left {
+  position: absolute;
+  left: 20px;
+}
+
+.logo-img {
+  height: 40px;
+}
+
+/* RIGHT */
+.right {
+  position: absolute;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.user-info {
+  color: #e7d6c2;
+  font-size: 14px;
+}
+
+.login-btn,
+.logout-btn {
+  border: 1px solid rgba(214,178,122,.4);
+  background: transparent;
+  color: #d6b27a;
+  padding: 6px 10px;
+  border-radius: 8px;
+}

@@ -6,6 +6,8 @@ import {
   orderBy,
   serverTimestamp,
   onSnapshot,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import "./EventBoard.css";
@@ -46,6 +48,7 @@ export default function EventBoard({
   const [text, setText] = useState("");
   const [color, setColor] = useState(COLORS[0]);
   const [eventName, setEventName] = useState<string>("");
+  const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -53,6 +56,7 @@ export default function EventBoard({
 
       if (event) {
         setEventName(event.title);
+        setIsCreator(event.creatorId === userId);
       }
     };
 
@@ -87,6 +91,16 @@ export default function EventBoard({
     });
 
     setText("");
+  };
+
+  const handleDelete = async (postId: string) => {
+    try {
+      await deleteDoc(
+        doc(db, "private-events", eventId, "posts", postId)
+      );
+    } catch (err) {
+      console.error("Post löschen fehlgeschlagen:", err);
+    }
   };
 
   return (
@@ -127,25 +141,50 @@ export default function EventBoard({
         </div>
 
         {posts.map((post) => (
-          <div
-            key={post.id}
-            className="post-card"
-            style={{
-              background: post.color || "rgba(233, 203, 169, 0.712)",
-            }}
-          >
+        <div
+          key={post.id}
+          className="post-card"
+          style={{
+            background:
+              post.color || "rgba(233, 203, 169, 0.712)",
+          }}
+        >
 
-            <div className="post-header">
-              <strong>{post.userName}</strong>
-              <span>
-                {post.createdAt?.toDate?.().toLocaleString?.() || ""}
-              </span>
-            </div>
+          {(isCreator || post.userId === userId) && (
+            <button
+              className="delete-post"
+              onClick={(e) => {
+                e.stopPropagation();
 
-            <p className="card-text">{post.text}</p>
+                const confirmed = window.confirm(
+                  "Möchtest du diesen Post wirklich löschen?"
+                );
 
+                if (confirmed && post.id) {
+                  handleDelete(post.id);
+                }
+              }}
+            >
+              ✕
+            </button>
+          )}
+
+          <div className="post-header">
+            <strong>{post.userName}</strong>
+
+            <span>
+              {post.createdAt
+                ?.toDate?.()
+                .toLocaleString?.() || ""}
+            </span>
           </div>
-        ))}
+
+          <p className="card-text">
+            {post.text}
+          </p>
+
+        </div>
+      ))}
 
       </div>
     </div>

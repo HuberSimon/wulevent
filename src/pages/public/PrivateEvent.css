@@ -4,10 +4,8 @@
 .event-container {
   min-height: 100dvh;
   padding-bottom: 80px;
-
   background: transparent;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-
   color: var(--text);
 }
 
@@ -15,70 +13,77 @@
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-
-  height: auto;
   min-height: 440px;
   position: relative;
   overflow: hidden;
 
-  border-bottom: 1px solid rgba(200,160,110,0.25);
+  margin: 20px;
+  border-radius: 24px;
+
+  background: rgba(255, 245, 232, 0.35);
+  border: 1px solid rgba(200, 160, 110, 0.25);
+  backdrop-filter: blur(18px);
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .event-hero {
+  background: rgba(35, 25, 18, 0.65);
+  border: 1px solid rgba(200, 160, 110, 0.15);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
 }
 
 .hero-left {
   flex: 1;
   padding: 64px;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 16px;
-
   z-index: 2;
   position: relative;
+
+  border-radius: 24px 0 0 24px;
 }
 
 .event-title {
   font-size: clamp(1.8rem, 3vw, 3.4rem);
   font-weight: 800;
   line-height: 1.1;
-
   color: var(--text-h);
   word-break: break-word;
 }
 
-.password-screen{
+.password-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.password-screen h1{
+.password-screen h1 {
   font-size: clamp(1.8rem, 3vw, 3.4rem);
   font-weight: 800;
   line-height: 1.1;
-
   color: var(--text-h);
   word-break: break-word;
 }
 
-.password-screen input{
+.password-screen input {
   width: 300px;
   margin-top: 10px;
   display: block;
-  background:  wheat;
+  background: wheat;
   color: #1a1410;
-
   padding: 12px 16px;
   box-shadow: 0 10px 25px rgba(160,120,80,0.25);
 }
 
-.password-screen button{
+.password-screen button {
   width: 300px;
   margin-top: 10px;
   display: block;
   background: linear-gradient(135deg, #c8a26a, #a77c4a);
   color: #1a1410;
-
   padding: 12px 16px;
   box-shadow: 0 10px 25px rgba(160,120,80,0.25);
 }
@@ -86,17 +91,18 @@
 .event-img {
   width: 45%;
   height: 100%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   object-fit: contain;
-
   margin: auto;
-
   z-index: 1;
   align-self: center;
+  border-radius: 0 24px 24px 0;
+}
+
+[data-theme="dark"] .event-img {
+  filter: brightness(0.8) contrast(1.05);
 }
 
 .overlay {
@@ -105,42 +111,45 @@
 
   background: linear-gradient(
     90deg,
-    rgba(246,239,230,0.95),
-    rgba(246,239,230,0.6),
+    rgba(246,239,230,0.9),
+    rgba(246,239,230,0.5),
+    transparent
+  );
+}
+
+[data-theme="dark"] .overlay {
+  background: linear-gradient(
+    90deg,
+    rgba(20, 15, 12, 0.9),
+    rgba(20, 15, 12, 0.5),
     transparent
   );
 }
 
 .creator-panel {
   margin-top: 18px;
-
   display: flex;
   flex-direction: column;
   gap: 14px;
-
   width: 100%;
-
   padding: 14px;
   border-radius: 16px;
-
-  background: rgba(255, 240, 220, 0.35);
+  background: rgba(255,240,220,0.35);
   border: 1px solid rgba(200,160,110,0.25);
-
   backdrop-filter: blur(12px);
-
   box-sizing: border-box;
 }
 
-.creator-actions { 
-  display: flex; 
-  flex-wrap: wrap; 
-  gap: 10px; 
-  justify-content: space-between; 
+.creator-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
 }
 
 .password-card {
   border-radius: 16px;
-  background: rgba(255, 240, 220, 0.35);
+  background: rgba(255,240,220,0.35);
   border: 1px solid rgba(200,160,110,0.25);
 }
 
@@ -153,8 +162,8 @@
 .password-row {
   padding-left: 20px;
   padding-right: 20px;
-  display: flex; 
-  flex-wrap: wrap; 
+  display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
 }
 
@@ -163,7 +172,6 @@ button {
   border-radius: 12px;
   border: none;
   cursor: pointer;
-
   font-weight: 600;
   transition: 0.2s ease;
 }
@@ -176,7 +184,6 @@ button {
 button.active {
   background: linear-gradient(135deg, #c8a26a, #a77c4a);
   color: #1a1410;
-
   padding: 12px 16px;
   box-shadow: 0 10px 25px rgba(160,120,80,0.25);
 }
@@ -185,14 +192,12 @@ button:hover {
   transform: translateY(-2px);
 }
 
-/* secondary buttons */
 .copy-link-btn,
 .toggle-btn {
   width: 100%;
   background: rgba(255,240,220,0.1);
   border: 1px solid rgba(200,160,110,0.25);
   color: var(--text);
-
   padding: 10px 14px;
 }
 
@@ -205,26 +210,22 @@ button:hover {
   width: 100%;
   padding: 14px;
   border-radius: 16px;
-  background: rgba(255, 240, 220, 0.35);
+  background: rgba(255,240,220,0.35);
   border: 1px solid rgba(200,160,110,0.25);
   backdrop-filter: blur(12px);
   box-sizing: border-box;
-  justify-content: space-between; 
-
+  justify-content: space-between;
 }
 
 .event-content {
   margin: 40px;
   padding: 28px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255,255,255,0.35);
   border-radius: 18px;
-
   backdrop-filter: blur(10px);
 }
 
@@ -240,18 +241,13 @@ button:hover {
 .login-save-btn {
   background: linear-gradient(135deg, #c8a26a, #a77c4a);
   color: #1a1410;
-
   box-shadow: 0 10px 25px rgba(160,120,80,0.25);
-
   margin-top: 16px;
   padding: 12px 16px;
-
   border-radius: 12px;
   border: none;
-
   font-weight: 600;
   cursor: pointer;
-
   transition: 0.2s;
 }
 
@@ -259,7 +255,7 @@ button:hover {
   transform: translateY(-2px);
 }
 
-[data-theme="dark"].event-content {
+[data-theme="dark"] .event-content {
   background: rgba(50,35,25,0.6);
   border: 1px solid rgba(200,160,110,0.15);
 }
@@ -276,14 +272,21 @@ button:hover {
   text-align: center;
 }
 
+/* =========================
+   ATTENDEE CARD
+========================= */
 .attendee {
+  position: relative;
   padding: 16px;
   border-radius: 14px;
-
   background: rgba(255,255,255,0.55);
   border: 1px solid rgba(200,160,110,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.15s ease;
 
-  transition: 0.2s ease;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
 }
 
 .attendee:hover {
@@ -294,162 +297,324 @@ button:hover {
   background: rgba(40,30,20,0.6);
 }
 
+.attendee.dragging {
+  opacity: 0.35;
+  transform: scale(0.96);
+  box-shadow: none;
+}
+
+.delete-attendee {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: #ff3b30;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.attendee:hover .delete-attendee {
+  opacity: 1;
+}
+
+/* On touch devices show delete button always (no hover) */
+@media (hover: none) and (pointer: coarse) {
+  .delete-attendee {
+    opacity: 1;
+  }
+}
+
+.delete-attendee:hover {
+  transform: scale(1.08);
+  background: #d90000;
+}
+
+/* =========================
+   GHOST (cloned drag element)
+========================= */
+.drag-ghost {
+  border-radius: 14px;
+  background: white;
+  /* pointer-events: none is set inline */
+}
+
+[data-theme="dark"] .drag-ghost {
+  background: rgba(40,30,20,0.95);
+}
+
+/* =========================
+   DROP TARGETS
+========================= */
+.drop-highlight {
+  background-color: rgba(59,130,246,0.15) !important;
+  border-color: #3b82f6 !important;
+  border-style: dashed !important;
+}
+
+.attendees {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  /* give the ungroup drop zone a minimum clickable area */
+  min-height: 60px;
+}
+
+/* =========================
+   GROUPS
+========================= */
+.group-zone {
+  margin: 40px;
+  border-top: 2px dashed rgba(200,160,110,0.3);
+  padding-top: 30px;
+}
+
+.group-create {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.group-create input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.group-box {
+  min-height: 120px;
+  padding: 20px;
+  border: 3px dashed #c89b6d;
+  border-radius: 16px;
+  background: rgba(255,240,220,0.15);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.group-person {
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 10px;
+  background: white;
+  cursor: grab;
+}
+
+.group-add-card {
+  background: rgba(200,155,109,0.15);
+  border: 2px dashed var(--accent);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 120px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.group-add-card:hover {
+  transform: translateY(-4px);
+}
+
+.group-add-card span {
+  font-size: 42px;
+  font-weight: 700;
+}
+
+/* =========================
+   DRAG HINT
+========================= */
+.drag-hint {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Drag handle indicator on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .attendee::before {
+    content: "⋮⋮";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ccc;
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+}
+
 /* =========================
    MODALS
 ========================= */
 .modal-overlay {
   position: fixed;
   inset: 0;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   background: rgba(10,8,6,0.55);
   backdrop-filter: blur(10px);
-
   padding: 20px;
   z-index: 9999;
 }
+
 .rsvp-modal-close,
-.modal-close { 
-  position: fixed; 
-  margin-right: 10px; 
-  margin-top: 10px; 
-  right: 0; 
-  top: 0; 
-  width: 34px; 
-  height: 34px; 
-  border-radius: 10px; 
-  background: rgba(200,160,110,0.12); 
+.modal-close {
+  position: fixed;
+  margin-right: 10px;
+  margin-top: 10px;
+  right: 0;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(200,160,110,0.12);
 }
 
-.rsvp-modal, .modal {
-width: 100%; 
-max-width: 480px; 
-display: flex; 
-flex-direction: column; 
-align-items: center; 
-border-radius: 22px; 
-padding: 22px; 
-background: rgba(255, 245, 232, 0.8); 
-border: 1px solid rgba(200,160,110,0.25); 
-backdrop-filter: blur(18px); 
-box-shadow: 0 30px 80px rgba(0,0,0,0.25); 
-animation: pop 0.25s ease;
+.rsvp-modal,
+.modal {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 22px;
+  padding: 22px;
+  background: rgba(255,245,232,0.8);
+  border: 1px solid rgba(200,160,110,0.25);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+  animation: pop 0.25s ease;
 }
 
-.rsvp-header { 
-  position: relative; 
-  margin-bottom: 14px; 
+.rsvp-header {
+  position: relative;
+  margin-bottom: 14px;
 }
 
-.rsvp-header h2 { 
-  margin: 0; 
-  color: var(--text-h); 
-} 
+.rsvp-header h2 {
+  margin: 0;
+  color: var(--text-h);
+}
 
-.rsvp-header p { 
-  margin: 4px 0 0; 
-  font-size: 14px; 
-  opacity: 0.7; 
+.rsvp-header p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  opacity: 0.7;
 }
 
 .rsvp-body input,
-.rsvp-body textarea { 
-  width: 100%; 
-  max-width: 380px; 
-  box-sizing: border-box;
-  margin-top: 10px; 
-  padding: 12px 14px; 
-  border-radius: 14px; 
-  border: 1px solid rgba(200,160,110,0.25); 
-  background: rgba(255,255,255,0.4); 
-  outline: none; 
-  color: var(--text); 
-}
-
-.rsvp-body textarea { 
-  min-height: 90px; 
-}
-
-.rsvp-choice { 
-  display: flex; 
-  gap: 10px; 
-  margin-top: 14px; 
-}
-
-.rsvp-choice button { 
-  flex: 1; 
-  padding: 12px; 
-  background: rgba(255,255,255,0.3); 
-}
-
-.rsvp-choice .active { 
-  background: linear-gradient(135deg, #c89b6d, #a97945); 
-  color: white; 
-}
-
-.rsvp-submit { 
-  width: 100%; 
-  margin-top: 80px; 
-  padding: 14px; 
-  border-radius: 14px; 
-  background: linear-gradient(135deg, #c89b6d, #a97945); 
-  color: white; 
-}
-
-.modal-header { 
-  position: relative; 
-  margin-bottom: 14px; 
-}
-
-.modal-header h2 { 
-  margin: 0; 
-  color: var(--text-h); 
-}
-
-.modal-header p { 
-  margin: 4px 0 0; 
-  font-size: 14px; 
-  opacity: 0.7; 
-}
-
-.modal input { 
+.rsvp-body textarea {
   width: 100%;
-  max-width: 380px; 
-  margin-top: 10px; 
-  padding: 12px 14px; 
-  border-radius: 14px; 
-  border: 1px solid rgba(200,160,110,0.25); 
-  background: rgba(255,255,255,0.4); 
-  outline: none; 
-  color: var(--text); 
+  max-width: 380px;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(200,160,110,0.25);
+  background: rgba(255,255,255,0.4);
+  outline: none;
+  color: var(--text);
 }
 
-.modal h2, 
-.modal p { 
-  text-align: center; 
+.rsvp-body textarea {
+  min-height: 90px;
 }
 
-.modal-save { 
-  width: 100%; 
-  margin-top: 16px; 
+.rsvp-choice {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
 }
 
-.modal-save button { 
-  width: 100%; 
-  padding: 14px; 
-  border-radius: 14px; 
-  background: linear-gradient(135deg, #c89b6d, #a97945); 
-  color: white; 
-  font-weight: 600; 
-  border: none; 
-  cursor: pointer; 
+.rsvp-choice button {
+  flex: 1;
+  padding: 12px;
+  background: rgba(255,255,255,0.3);
 }
 
-.modal-save button:hover { 
-  transform: translateY(-2px); 
+.rsvp-choice .active {
+  background: linear-gradient(135deg, #c89b6d, #a97945);
+  color: white;
+}
+
+.rsvp-submit {
+  width: 100%;
+  margin-top: 80px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #c89b6d, #a97945);
+  color: white;
+}
+
+.modal-header {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--text-h);
+}
+
+.modal-header p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.modal input {
+  width: 100%;
+  max-width: 380px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(200,160,110,0.25);
+  background: rgba(255,255,255,0.4);
+  outline: none;
+  color: var(--text);
+}
+
+.modal h2,
+.modal p {
+  text-align: center;
+}
+
+.modal-save {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.modal-save button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #c89b6d, #a97945);
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-save button:hover {
+  transform: translateY(-2px);
 }
 
 [data-theme="dark"] .rsvp-modal,
@@ -472,7 +637,7 @@ animation: pop 0.25s ease;
 }
 
 /* =========================
-   MOBILE FIX
+   MOBILE
 ========================= */
 @media (max-width: 900px) {
   .event-hero {
@@ -483,7 +648,6 @@ animation: pop 0.25s ease;
   .event-img {
     width: 100%;
     height: 260px;
-
     display: flex;
     justify-content: center;
     align-items: center;
@@ -495,6 +659,10 @@ animation: pop 0.25s ease;
 
   .event-content,
   .attendees {
+    margin: 20px;
+  }
+
+  .group-zone {
     margin: 20px;
   }
 }

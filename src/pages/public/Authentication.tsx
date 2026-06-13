@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import toast from "react-hot-toast"
 
 import {
@@ -13,16 +13,23 @@ import "./Authentication.css"
 import { doc, setDoc } from "firebase/firestore"
 
 const Authentication: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true)
-
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const location = useLocation()
   const navigate = useNavigate()
   const redirectEvent = localStorage.getItem("redirectEvent");
+
+  const initialMode = location.state?.mode
+    ? location.state.mode === "register"
+      ? false
+      : true
+    : true
+
+  const [isLogin, setIsLogin] = useState(initialMode)
 
   const handleSubmit = async () => {
     if (!email || !password || (!isLogin && (!firstName || !lastName))) {
