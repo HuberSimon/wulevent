@@ -1,0 +1,79 @@
+.unlock-screen {
+  min-height: 100dvh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+}
+
+.unlock-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px;
+  border-radius: 26px;
+  background:
+    rgba(255,245,232,.85);
+  backdrop-filter:
+    blur(18px);
+  border:
+    1px solid rgba(200,160,110,.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.15);
+  line-height: 1.1;
+  color: var(--text-h);
+  word-break: break-word;
+}
+
+[data-theme="dark"] .unlock-card {
+  background:
+    rgba(30,20,14,.92);
+}
+
+.unlock-icon {
+  font-size: 54px;
+}
+
+.unlock-card h1 {
+  margin: 0;
+}
+
+.unlock-card p {
+  opacity: .75;
+}
+
+.unlock-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border-radius: 14px;
+  border:
+    1px solid rgba(200,160,110,.25);
+  background:
+    rgba(255,255,255,.35);
+  color: var(--text);
+}
+
+.unlock-card button {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  background:
+    linear-gradient(
+      135deg,
+      #c8a26a,
+      #a77c4a
+    );
+}
+
+.unlock-error {
+  color: #ff4444;
+}
