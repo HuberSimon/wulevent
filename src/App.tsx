@@ -27,6 +27,9 @@ import { getUserDisplayName } from './services/database/user-service'
 import BasicNavbar from './components/BasicNavbar'
 import EventNavbar from './components/EventNavbar'
 
+import UnlockEvent from "./components/UnlockEvent"
+import { getEventById } from "./services/database/private-event-service"
+
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user } = useAuth()
   return user ? children : <Navigate to="/login" />
@@ -93,18 +96,14 @@ function AnimatedRoutes() {
             <Route
               path="/event/:id/board"
               element={
-                <ProtectedRoute>
                     <EventBoardWrapper />
-                </ProtectedRoute>
               }
             />
 
             <Route
               path="/event/:id/moments"
               element={
-                <ProtectedRoute>
                     <EventMomentsWrapper />
-                </ProtectedRoute>
               }
             />
 
@@ -129,52 +128,94 @@ const HomeForward = () => {
 
 const EventBoardWrapper = () => {
   const { id } = useParams()
+
   const { user } = useAuth()
-  const [name, setName] = useState<string | null>(null)
+
+  const [name, setName] = useState("")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [event, setEvent] = useState<any>()
 
   useEffect(() => {
     const load = async () => {
-      if (!user?.uid) return
-      const displayName = await getUserDisplayName(user.uid)
-      setName(displayName)
-    }
-    load()
-  }, [user])
 
-  if (!id || !user || !name) return null
+      if (!id) return
+
+      const eventData =
+        await getEventById(id)
+
+      setEvent(eventData)
+
+      if (user?.uid) {
+        setName(
+          await getUserDisplayName(
+            user.uid
+          )
+        )
+      }
+    }
+
+    load()
+
+  }, [id, user])
+
+  if (!id || !event) return null
 
   return (
-    <EventBoard
+    <UnlockEvent
       eventId={id}
-      userId={user.uid}
-      userName={name}
-    />
+      event={event}
+    >
+      <EventBoard
+        eventId={id}
+        userId={user?.uid ?? ""}
+        userName={name}
+      />
+    </UnlockEvent>
   )
 }
 
 const EventMomentsWrapper = () => {
   const { id } = useParams()
   const { user } = useAuth()
-  const [name, setName] = useState<string | null>(null)
-
+  const [name,setName] =
+  useState("")
+  const [event,setEvent] =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useState<any>()
   useEffect(() => {
-    const load = async () => {
-      if (!user?.uid) return
-      const displayName = await getUserDisplayName(user.uid)
-      setName(displayName)
+  const load = async () => {
+    if (!id) return
+    setEvent(
+      await getEventById(id)
+    )
+    if (user?.uid) {
+      setName(
+          await getUserDisplayName(
+          user.uid
+        )
+      )
     }
-    load()
-  }, [user])
+  }
+  load()
+}, [id,user])
 
-  if (!id || !user || !name) return null
+  if (!id || !event)
+  return null
 
   return (
+    <UnlockEvent
+      eventId={id}
+      event={event}
+    >
     <EventMoments
       eventId={id}
-      userId={user.uid}
+      userId={user?.uid ?? ""}
       userName={name}
+      isEventCreator={user && event?.creatorId === user.uid}
     />
+    </UnlockEvent>
   )
+
 }
 
 function App() {
