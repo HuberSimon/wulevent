@@ -19,14 +19,18 @@ export interface PrivateEvent {
   showAttendees?: boolean;
   password: string;
   imagePath: string;
+  eventDate?: string;
+  memoriesBoardEnabled?: boolean;
+  pinboardEnabled?: boolean;
 }
 
 export const createEvent = async (data: PrivateEvent) => {
   const eventRef = await addDoc(collection(db, "private-events"), {
     ...data,
+    memoriesBoardEnabled: data.memoriesBoardEnabled ?? false,
+    pinboardEnabled: data.pinboardEnabled ?? false,
     createdAt: new Date(),
   });
-
   await setDoc(
     doc(db, "users", data.creatorId, "createdEvents", eventRef.id),
     {
@@ -34,7 +38,6 @@ export const createEvent = async (data: PrivateEvent) => {
       createdAt: new Date(),
     }
   );
-
   return eventRef.id;
 };
 
@@ -45,7 +48,6 @@ export const saveInvitedEvent = async (
   const ref = doc(db, "users", userId, "invitedEvents", eventId);
   const snap = await getDoc(ref);
   if (snap.exists()) return;
-
   await setDoc(
     doc(db, "users", userId, "invitedEvents", eventId),
     {
@@ -55,15 +57,11 @@ export const saveInvitedEvent = async (
   );
 };
 
-
 export const getEventById = async (id: string) => {
   const docRef = doc(db, "private-events", id);
   const snapshot = await getDoc(docRef);
-
   if (!snapshot.exists()) return null;
-
   const data = snapshot.data();
-
   return {
     id: snapshot.id,
     title: data.title,
@@ -72,6 +70,9 @@ export const getEventById = async (id: string) => {
     showAttendees: data.showAttendees ?? true,
     password: data.password,
     imagePath: data.imagePath || "",
+    eventDate: data.eventDate ?? "",
+    memoriesBoardEnabled: data.memoriesBoardEnabled ?? false,
+    pinboardEnabled: data.pinboardEnabled ?? false,
   };
 };
 
@@ -79,14 +80,11 @@ export const getUserEvents = async (userId: string) => {
   const createdSnap = await getDocs(
     collection(db, "users", userId, "createdEvents")
   );
-
   const invitedSnap = await getDocs(
     collection(db, "users", userId, "invitedEvents")
   );
-
   const createdIds = createdSnap.docs.map((d) => d.id);
   const invitedIds = invitedSnap.docs.map((d) => d.id);
-
   return {
     createdIds,
     invitedIds,
@@ -102,17 +100,13 @@ export const deleteEventCompletely = async (
       deleteAllNotes(eventId),
       deleteAllRSVPs(eventId),
     ]);
-
     await deleteDoc(doc(db, "private-events", eventId));
-
     await deleteDoc(
       doc(db, "users", userId, "createdEvents", eventId)
     );
-
     await deleteDoc(
       doc(db, "users", userId, "invitedEvents", eventId)
     );
-
   } catch (err) {
     console.error("Delete failed:", err);
     throw err;
