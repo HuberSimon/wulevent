@@ -6,8 +6,9 @@ export const uploadImageToCloudinary = async (
   formData.append("file", file);
   formData.append("upload_preset", "wulevent");
   formData.append("folder", `events/${eventId}/moments`);
+  const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME!;
   const res = await fetch(
-    "https://api.cloudinary.com/v1_1/dbn58pwgq/image/upload",
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
     {
       method: "POST",
       body: formData,
@@ -30,4 +31,20 @@ export const optimizedCloudinaryUrl = (url: string, width?: number) => {
     "/" +
     url.slice(idx + marker.length)
   );
+};
+
+export const deleteFromCloudinary = async (imageUrls: string[]): Promise<void> => {
+  if (imageUrls.length === 0) return;
+  try {
+    const res = await fetch("/.netlify/functions/deleteCloudinaryImages", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ imageUrls }),
+    });
+    if (!res.ok) throw new Error(`Server antwortete mit ${res.status}`);
+    const data = await res.json();
+    console.log("Cloudinary delete results:", data.results);
+  } catch (err) {
+    console.warn("Cloudinary-Löschung fehlgeschlagen:", err);
+  }
 };

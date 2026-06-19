@@ -14,6 +14,7 @@ interface MomentPost {
 interface MomentCardProps {
   post: MomentPost;
   canDelete?: boolean;
+  canDownload?: boolean;
   onDelete?: () => void;
   onDownload?: (url: string, filename?: string) => Promise<boolean>;
 }
@@ -23,6 +24,7 @@ const SWIPE_THRESHOLD = 50;
 const MomentCard = ({
   post,
   canDelete = false,
+  canDownload = false,
   onDelete,
   onDownload,
 }: MomentCardProps) => {
@@ -114,8 +116,6 @@ const MomentCard = ({
         >
           <img src={currentImage} className="moment-image" alt="" draggable={false} />
 
-          {/* Left / right arrows — sichtbar auf Geräten mit Maus/Hover,
-              auf reinen Touch-Geräten per CSS ausgeblendet (siehe MomentCard.css) */}
           {post.images.length > 1 && (
             <>
               <button className="arrow left" onClick={prev}>
@@ -127,8 +127,7 @@ const MomentCard = ({
             </>
           )}
 
-          {/* Download button for current image */}
-          {onDownload && (
+          {canDownload && onDownload && (
             <button
               className={`moment-download-btn ${downloadState}`}
               onClick={handleDownloadClick}

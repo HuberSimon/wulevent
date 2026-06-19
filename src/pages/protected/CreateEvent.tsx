@@ -8,30 +8,28 @@ import "./CreateEvent.css";
 const eventTypeImages: Record<string, string> = {
   Geburtstag: "/images/geburtstag.png",
   Hochzeit: "/images/hochzeit.png",
-  "sonstige Veranstaltung": "/images/default.png",
+  "sonstige Veranstaltung": "/images/sonstige-veranstaltung.png",
 };
 
 const CreateEventPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [eventType, setEventType] = useState("");
-  const [password, setPassword] = useState("");
+  const [title,         setTitle]         = useState("");
+  const [description,   setDescription]   = useState("");
+  const [eventType,     setEventType]     = useState("");
+  const [password,      setPassword]      = useState("");
+  const [eventDate,     setEventDate]     = useState("");
   const [showAttendees, setShowAttendees] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading,       setLoading]       = useState(false);
 
   const handleCreate = async () => {
     if (!user) return;
-
-    if (!title || !description || !eventType) {
+    if (!title || !description || !eventType || !eventDate) {
       toast.error("Bitte alle Felder ausfüllen");
       return;
     }
-
     setLoading(true);
-
     try {
       const id = await createEvent({
         title,
@@ -40,21 +38,21 @@ const CreateEventPage = () => {
         password,
         showAttendees,
         imagePath: eventTypeImages[eventType],
+        eventDate,
+        memoriesBoardEnabled: false,
+        pinboardEnabled: false,
       });
-
       toast.success("Event erstellt 🎉");
       navigate(`/event/${id}`);
     } catch (err) {
       console.error(err);
       toast.error("Fehler beim Erstellen");
     }
-
     setLoading(false);
   };
 
   return (
     <div className="create-card">
-
       <h1 className="create-title">Event erstellen</h1>
       <p className="create-subtitle">
         Erstelle deine Einladung und teile sie mit deinen Gästen
@@ -72,7 +70,6 @@ const CreateEventPage = () => {
         placeholder="Veranstaltungs-Einladung"
       />
 
-      {/* 🔽 EVENT TYP DROPDOWN */}
       <select
         value={eventType}
         onChange={(e) => setEventType(e.target.value)}
@@ -83,6 +80,16 @@ const CreateEventPage = () => {
         <option value="sonstige Veranstaltung">🎉 Sonstige Veranstaltung</option>
       </select>
 
+      <div className="date-field-wrap">
+        <label className="date-label">📅 Datum der Veranstaltung</label>
+        <input
+          type="date"
+          value={eventDate}
+          onChange={(e) => setEventDate(e.target.value)}
+          className="date-input"
+        />
+      </div>
+
       <input
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -91,7 +98,6 @@ const CreateEventPage = () => {
 
       <div className="toggle-row">
         <span>Teilnehmerliste öffentlich</span>
-
         <label className="switch">
           <input
             type="checkbox"
@@ -109,7 +115,6 @@ const CreateEventPage = () => {
       >
         {loading ? "Erstelle..." : "Erstellen"}
       </button>
-
     </div>
   );
 };

@@ -22,7 +22,6 @@
   animation: floatIn 0.5s ease;
 }
 
-/* DARK MODE */
 [data-theme="dark"] .create-card {
   background: rgba(35, 25, 18, 0.7);
   border: 1px solid rgba(200,160,110,0.18);
@@ -61,6 +60,7 @@
   outline: none;
 
   transition: 0.2s ease;
+  box-sizing: border-box;
 }
 
 .create-card textarea {
@@ -74,12 +74,68 @@
   box-shadow: 0 0 0 3px rgba(200,160,110,0.15);
 }
 
-/* DARK INPUTS */
 [data-theme="dark"] .create-card input,
 [data-theme="dark"] .create-card textarea {
   background: rgba(20, 15, 10, 0.4);
   border: 1px solid rgba(200,160,110,0.18);
   color: var(--text);
+}
+
+/* =========================
+   DATE FIELD
+========================= */
+.date-field-wrap {
+  width: 100%;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  opacity: 0.75;
+  padding-left: 4px;
+  color: var(--text);
+}
+
+.date-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(200,160,110,0.25);
+  background: rgba(255,255,255,0.4);
+  color: var(--text);
+  outline: none;
+  transition: 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 1rem;
+  /* remove default browser date styling on some platforms */
+  -webkit-appearance: none;
+}
+
+.date-input:focus {
+  border-color: rgba(200,160,110,0.6);
+  box-shadow: 0 0 0 3px rgba(200,160,110,0.15);
+}
+
+/* date picker icon tint where supported */
+.date-input::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+  filter: invert(0.3) sepia(1) saturate(3) hue-rotate(5deg);
+}
+
+[data-theme="dark"] .date-input {
+  background: rgba(20, 15, 10, 0.4);
+  border: 1px solid rgba(200,160,110,0.18);
+  color: var(--text);
+}
+
+[data-theme="dark"] .date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(0.5) saturate(2) hue-rotate(5deg);
 }
 
 /* =========================
@@ -97,9 +153,7 @@
 
   color: var(--text);
   outline: none;
-
   cursor: pointer;
-
   transition: 0.2s ease;
 
   appearance: none;
@@ -110,6 +164,7 @@
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 18px;
+  box-sizing: border-box;
 }
 
 .create-card select:focus {
@@ -117,9 +172,8 @@
   box-shadow: 0 0 0 3px rgba(200,160,110,0.15);
 }
 
-/* DARK SELECT */
 [data-theme="dark"] .create-card select {
-  background: rgba(20, 15, 10, 0.4);
+  background-color: rgba(20, 15, 10, 0.4);
   border: 1px solid rgba(200,160,110,0.18);
   color: var(--text);
 }
@@ -132,6 +186,7 @@
   justify-content: space-between;
   align-items: center;
 
+  width: 100%;
   margin: 20px 0;
   padding: 14px 16px;
 
@@ -139,6 +194,7 @@
 
   background: rgba(200,160,110,0.08);
   border: 1px solid rgba(200,160,110,0.15);
+  box-sizing: border-box;
 }
 
 /* =========================
@@ -148,6 +204,7 @@
   position: relative;
   width: 52px;
   height: 28px;
+  flex-shrink: 0;
 }
 
 .switch input {
@@ -168,10 +225,8 @@
   position: absolute;
   width: 22px;
   height: 22px;
-
   left: 3px;
   top: 3px;
-
   background: white;
   border-radius: 50%;
   transition: 0.3s;
@@ -199,6 +254,7 @@
   color: white;
 
   font-weight: 600;
+  font-family: inherit;
 
   cursor: pointer;
   transition: 0.2s ease;
@@ -209,6 +265,12 @@
 .primary-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 20px 60px rgba(160,120,80,0.35);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* =========================
@@ -226,7 +288,7 @@
 }
 
 /* =========================
-   TABLET (bis 768px)
+   TABLET
 ========================= */
 @media (max-width: 768px) {
   .create-card {
@@ -241,7 +303,8 @@
 
   .create-card input,
   .create-card textarea,
-  .create-card select {
+  .create-card select,
+  .date-input {
     font-size: 16px;
     padding: 12px 14px;
   }
@@ -257,7 +320,7 @@
 }
 
 /* =========================
-   SMARTPHONE (bis 480px)
+   SMARTPHONE
 ========================= */
 @media (max-width: 480px) {
   .create-card {
@@ -279,7 +342,8 @@
 
   .create-card input,
   .create-card textarea,
-  .create-card select {
+  .create-card select,
+  .date-input {
     font-size: 15px;
     padding: 11px 12px;
   }

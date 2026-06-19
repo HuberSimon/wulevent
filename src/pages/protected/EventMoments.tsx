@@ -14,6 +14,7 @@ import {
   uploadImageToCloudinary,
   optimizedCloudinaryUrl,
 } from "../../services/database/cloudinary-service";
+import { deleteFromCloudinary } from "../../services/database/cloudinary-service";
 import "./EventMoments.css";
 import MomentCard from "../../components/MomentCard";
 import { getEventById } from "../../services/database/private-event-service";
@@ -29,7 +30,7 @@ interface MomentPost {
 }
 
 const MAX_DIMENSION = 1920;
-const JPEG_QUALITY = 0.82;
+const JPEG_QUALITY  = 0.82;
 
 const compressImage = (file: File): Promise<File> => {
   return new Promise((resolve) => {
@@ -37,63 +38,36 @@ const compressImage = (file: File): Promise<File> => {
       resolve(file);
       return;
     }
-
-    const img = new Image();
+    const img       = new Image();
     const objectUrl = URL.createObjectURL(file);
-
     img.onload = () => {
       URL.revokeObjectURL(objectUrl);
-
       let { width, height } = img;
       if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
         if (width > height) {
           height = Math.round((height * MAX_DIMENSION) / width);
-          width = MAX_DIMENSION;
+          width  = MAX_DIMENSION;
         } else {
-          width = Math.round((width * MAX_DIMENSION) / height);
+          width  = Math.round((width * MAX_DIMENSION) / height);
           height = MAX_DIMENSION;
         }
       }
-
       const canvas = document.createElement("canvas");
-      canvas.width = width;
+      canvas.width  = width;
       canvas.height = height;
       const ctx = canvas.getContext("2d");
-
-      if (!ctx) {
-        resolve(file);
-        return;
-      }
-
+      if (!ctx) { resolve(file); return; }
       ctx.drawImage(img, 0, 0, width, height);
-
       canvas.toBlob(
         (blob) => {
-          if (!blob) {
-            resolve(file);
-            return;
-          }
-          if (blob.size >= file.size) {
-            resolve(file);
-            return;
-          }
-          const compressedFile = new File(
-            [blob],
-            file.name.replace(/\.\w+$/, ".jpg"),
-            { type: "image/jpeg" }
-          );
-          resolve(compressedFile);
+          if (!blob || blob.size >= file.size) { resolve(file); return; }
+          resolve(new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" }));
         },
         "image/jpeg",
         JPEG_QUALITY
       );
     };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(file);
-    };
-
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
     img.src = objectUrl;
   });
 };
@@ -125,63 +99,47 @@ const EventMoments = ({
   isEventCreator = false,
 }: {
   eventId: string;
-  userId: string | null; // null = not logged in
-  userName: string | null; // null = not logged in
+  userId: string | null;
+  userName: string | null;
   isEventCreator?: boolean;
 }) => {
-  const [posts, setPosts] = useState<MomentPost[]>([]);
-  const [text, setText] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [posts,          setPosts]          = useState<MomentPost[]>([]);
+  const [text,           setText]           = useState("");
+  const [files,          setFiles]          = useState<File[]>([]);
+  const [loading,        setLoading]        = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [eventName, setEventName] = useState<string>("");
+  const [eventName,      setEventName]      = useState<string>("");
 
-  // ── Guest name dialog ────────────────────────────────────────────────────────
-  const [showNameDialog, setShowNameDialog] = useState(false);
-  const [guestFirstName, setGuestFirstName] = useState("");
-  const [guestLastName, setGuestLastName] = useState("");
-  // Resolved display name (either from prop or entered by guest)
-  const [resolvedName, setResolvedName] = useState<string | null>(
-    userName ?? null
-  );
+  const [isEnabled,       setBoardEnabled]    = useState(false);
+  const [showNameDialog,  setShowNameDialog]  = useState(false);
+  const [guestFirstName,  setGuestFirstName]  = useState("");
+  const [guestLastName,   setGuestLastName]   = useState("");
+  const [resolvedName,    setResolvedName]    = useState<string | null>(userName ?? null);
 
   useEffect(() => {
-    if (userName) {
-      setResolvedName(userName);
-    }
+    if (userName) setResolvedName(userName);
   }, [userName]);
 
-  // ── Bulk download state ──────────────────────────────────────────────────────
   const [showDownloadModal, setShowDownloadModal] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
-  const [zipping, setZipping] = useState(false);
-  const [zipProgress, setZipProgress] = useState(0);
+  const [selectedImages,    setSelectedImages]    = useState<Set<string>>(new Set());
+  const [zipping,           setZipping]           = useState(false);
+  const [zipProgress,       setZipProgress]       = useState(0);
 
   useEffect(() => {
     const load = async () => {
       const event = await getEventById(eventId);
+      setBoardEnabled(!!event?.memoriesBoardEnabled);
       if (event) setEventName(event.title);
-
-      const q = query(
-        collection(db, "private-events", eventId, "moments"),
-        orderBy("createdAt", "desc")
-      );
+      const q    = query(collection(db, "private-events", eventId, "moments"), orderBy("createdAt", "desc"));
       const snap = await getDocs(q);
-      setPosts(
-        snap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        })) as MomentPost[]
-      );
+      setPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as MomentPost[]);
     };
     load();
   }, [eventId]);
 
-  // ── Open name dialog or start upload directly ────────────────────────────────
   const handlePostClick = () => {
     if (!text && files.length === 0) return;
     if (!resolvedName) {
-      // Guest: ask for name first
       setShowNameDialog(true);
     } else {
       handleUpload(resolvedName);
@@ -190,7 +148,7 @@ const EventMoments = ({
 
   const handleGuestNameConfirm = () => {
     const trimFirst = guestFirstName.trim();
-    const trimLast = guestLastName.trim();
+    const trimLast  = guestLastName.trim();
     if (!trimFirst || !trimLast) return;
     const fullName = `${trimFirst} ${trimLast}`;
     setResolvedName(fullName);
@@ -198,101 +156,69 @@ const EventMoments = ({
     handleUpload(fullName);
   };
 
-  // ── Upload ───────────────────────────────────────────────────────────────────
   const handleUpload = async (displayName: string) => {
     if (!text && files.length === 0) return;
     setLoading(true);
     setUploadProgress(0);
-
-    const sliced = files.slice(0, 10);
-    let done = 0;
+    const sliced    = files.slice(0, 10);
+    let done        = 0;
     const imageUrls: string[] = new Array(sliced.length);
-
     try {
       await uploadInBatches(
         sliced,
         async (file, index) => {
           let compressed: File;
-          try {
-            compressed = await compressImage(file);
-          } catch (err) {
-            console.error("Kompression fehlgeschlagen, nutze Original:", err);
-            compressed = file;
-          }
-
+          try   { compressed = await compressImage(file); }
+          catch { compressed = file; }
           const url = await uploadImageToCloudinary(compressed, eventId);
-          if (!url) {
-            throw new Error(
-              `Cloudinary hat keine URL zurückgegeben für ${file.name}`
-            );
-          }
+          if (!url) throw new Error(`Cloudinary hat keine URL zurückgegeben für ${file.name}`);
           imageUrls[index] = url;
           done++;
           setUploadProgress(Math.round((done / sliced.length) * 100));
         },
         UPLOAD_CONCURRENCY
       );
-
       const docRef = await addDoc(
         collection(db, "private-events", eventId, "moments"),
-        {
-          text,
-          images: imageUrls,
-          userName: displayName,
-          userId: userId ?? `guest-${Date.now()}`,
-          createdAt: new Date(),
-        }
+        { text, images: imageUrls, userName: displayName, userId: userId ?? `guest-${Date.now()}`, createdAt: new Date() }
       );
-
-      const newPost: MomentPost = {
-        id: docRef.id,
-        text,
-        images: imageUrls,
-        userName: displayName,
-        userId: userId ?? `guest-${Date.now()}`,
-        createdAt: new Date(),
-      };
-
-      setPosts((prev) => [newPost, ...prev]);
+      setPosts((prev) => [
+        { id: docRef.id, text, images: imageUrls, userName: displayName, userId: userId ?? `guest-${Date.now()}`, createdAt: new Date() },
+        ...prev,
+      ]);
       setText("");
       setFiles([]);
     } catch (err) {
       console.error("Upload fehlgeschlagen:", err);
-      alert(
-        "Der Post konnte nicht hochgeladen werden. Bitte Internetverbindung prüfen und erneut versuchen."
-      );
+      alert("Der Post konnte nicht hochgeladen werden. Bitte Internetverbindung prüfen und erneut versuchen.");
     } finally {
       setLoading(false);
       setUploadProgress(0);
     }
   };
 
-  // ── Delete post ──────────────────────────────────────────────────────────────
   const handleDeletePost = async (postId: string) => {
     if (!confirm("Diesen Post wirklich löschen?")) return;
+    const post      = posts.find((p) => p.id === postId);
+    const imageUrls = post?.images ?? [];
     await deleteDoc(doc(db, "private-events", eventId, "moments", postId));
     setPosts((prev) => prev.filter((p) => p.id !== postId));
+    if (imageUrls.length > 0) {
+      deleteFromCloudinary(imageUrls); // nicht-blockierend
+    }
   };
 
   const downloadsInFlight = useRef<Set<string>>(new Set());
 
-  const handleDownloadImage = async (
-    url: string,
-    filename?: string
-  ): Promise<boolean> => {
-    if (downloadsInFlight.current.has(url)) {
-      return false; // läuft schon, zweiten Klick ignorieren
-    }
+  const handleDownloadImage = async (url: string, filename?: string): Promise<boolean> => {
+    if (downloadsInFlight.current.has(url)) return false;
     downloadsInFlight.current.add(url);
-
     try {
       const response = await fetch(optimizedCloudinaryUrl(url));
-      if (!response.ok) {
-        throw new Error(`Download fehlgeschlagen (Status ${response.status})`);
-      }
+      if (!response.ok) throw new Error(`Download fehlgeschlagen (Status ${response.status})`);
       const blob = await response.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = URL.createObjectURL(blob);
       a.download = filename ?? `moment-${Date.now()}.jpg`;
       a.click();
       URL.revokeObjectURL(a.href);
@@ -305,57 +231,36 @@ const EventMoments = ({
     }
   };
 
-  // ── Bulk download ────────────────────────────────────────────────────────────
   const allImages = posts.flatMap((p) => p.images);
 
   const openDownloadModal = () => {
-    // Default: all images selected
     setSelectedImages(new Set(allImages));
     setShowDownloadModal(true);
   };
 
-  const toggleImage = (url: string) => {
-    setSelectedImages((prev) => {
-      const next = new Set(prev);
-      if (next.has(url)) {
-        next.delete(url);
-      } else {
-        next.add(url);
-      }
-      return next;
-    });
-  };
-
-  const selectAll = () => setSelectedImages(new Set(allImages));
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  const toggleImage = (url: string) => setSelectedImages((prev) => { const n = new Set(prev); n.has(url) ? n.delete(url) : n.add(url); return n; });
+  const selectAll   = () => setSelectedImages(new Set(allImages));
   const deselectAll = () => setSelectedImages(new Set());
 
-  const getExtensionFromUrl = (url: string) => {
-    const match = url.match(/\.(jpg|jpeg|png|webp|gif)(?:\?|$)/i);
-    return match ? match[1].toLowerCase() : "jpg";
-  };
+  const getExtensionFromUrl = (url: string) => url.match(/\.(jpg|jpeg|png|webp|gif)(?:\?|$)/i)?.[1].toLowerCase() ?? "jpg";
 
   const handleBulkDownload = async () => {
     const urls = Array.from(selectedImages);
     if (urls.length === 0) return;
-
     setZipping(true);
     setZipProgress(0);
-
-    const zip = new JSZip();
-    let done = 0;
-
+    const zip  = new JSZip();
+    let done   = 0;
     try {
       await uploadInBatches(
         urls,
         async (url, index) => {
           try {
             const response = await fetch(optimizedCloudinaryUrl(url));
-            if (!response.ok) {
-              throw new Error(`Bild ${index + 1} konnte nicht geladen werden`);
-            }
+            if (!response.ok) throw new Error(`Bild ${index + 1} konnte nicht geladen werden`);
             const blob = await response.blob();
-            const ext = getExtensionFromUrl(url);
-            zip.file(`moment-${index + 1}.${ext}`, blob);
+            zip.file(`moment-${index + 1}.${getExtensionFromUrl(url)}`, blob);
           } finally {
             done++;
             setZipProgress(Math.round((done / urls.length) * 100));
@@ -363,21 +268,17 @@ const EventMoments = ({
         },
         UPLOAD_CONCURRENCY
       );
-
       const zipBlob = await zip.generateAsync({ type: "blob" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(zipBlob);
-      a.download = `${eventName || "moments"}-bilder.zip`;
+      const a       = document.createElement("a");
+      a.href        = URL.createObjectURL(zipBlob);
+      a.download    = `${eventName || "moments"}-bilder.zip`;
       a.click();
       URL.revokeObjectURL(a.href);
-
       setShowDownloadModal(false);
       setSelectedImages(new Set());
     } catch (err) {
       console.error("ZIP-Download fehlgeschlagen:", err);
-      alert(
-        "Die Bilder konnten nicht heruntergeladen werden. Bitte erneut versuchen."
-      );
+      alert("Die Bilder konnten nicht heruntergeladen werden. Bitte erneut versuchen.");
     } finally {
       setZipping(false);
       setZipProgress(0);
@@ -386,222 +287,127 @@ const EventMoments = ({
 
   return (
     <div className="board-container">
-      {/* ── Header ── */}
       <div className="board-info">
-        <h1>
-          Momente <br /> {eventName}
-        </h1>
+        <h1>Momente <br /> {eventName}</h1>
         <p>Teile Momente mit allen Teilnehmern</p>
       </div>
 
-      {/* ── Create post card ── */}
-      <div className="post-add-card">
-        <input
-          id="fileInput"
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => {
-            if (!e.target.files) return;
-            setFiles(Array.from(e.target.files));
-          }}
-          className="hidden-input"
-        />
-        <label htmlFor="fileInput" className="upload-label">
-          <div className="upload-icon">📷</div>
-          <div className="upload-text">
-            <strong>Bilder hochladen</strong>
-          </div>
-        </label>
+      <div className="divider" />
 
-        {files.length > 0 && (
-          <div className="preview-row">
-            {files.map((file, i) => (
-              <div key={i} className="preview-item">
-                <img
-                  src={URL.createObjectURL(file)}
-                  className="preview-img"
-                  alt=""
-                />
-                <button
-                  className="remove-preview"
-                  onClick={() =>
-                    setFiles((prev) => prev.filter((_, idx) => idx !== i))
-                  }
-                  title="Bild entfernen"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+      {isEnabled && (
+        <div className="post-add-card">
+          <input
+            id="fileInput"
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => { if (!e.target.files) return; setFiles(Array.from(e.target.files)); }}
+            className="hidden-input"
+          />
+          <label htmlFor="fileInput" className="upload-label">
+            <div className="upload-icon">📷</div>
+            <div className="upload-text"><strong>Bilder hochladen</strong></div>
+          </label>
 
-        <textarea
-          placeholder="Was geht ab..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-
-        {loading && files.length > 0 && (
-          <div className="progress-wrap">
-            <div
-              className="progress-bar"
-              style={{ width: `${uploadProgress}%` }}
-            />
-            <span className="progress-label">{uploadProgress}%</span>
-          </div>
-        )}
-
-        <div className="post-actions">
-          {isEventCreator && allImages.length > 0 && (
-            <button className="bulk-download-btn" onClick={openDownloadModal}>
-              ⬇ Bilder herunterladen
-            </button>
+          {files.length > 0 && (
+            <div className="preview-row">
+              {files.map((file, i) => (
+                <div key={i} className="preview-item">
+                  <img src={URL.createObjectURL(file)} className="preview-img" alt="" />
+                  <button className="remove-preview" onClick={() => setFiles((prev) => prev.filter((_, idx) => idx !== i))} title="Bild entfernen">✕</button>
+                </div>
+              ))}
+            </div>
           )}
 
-          <button onClick={handlePostClick} disabled={loading}>
-            {loading
-              ? files.length > 0
-                ? `Lädt hoch… ${uploadProgress}%`
-                : "Posting…"
-              : "Post erstellen"}
-          </button>
-        </div>
-      </div>
+          <textarea placeholder="Was geht ab..." value={text} onChange={(e) => setText(e.target.value)} />
 
-      {/* ── Post grid ── */}
+          {loading && files.length > 0 && (
+            <div className="progress-wrap">
+              <div className="progress-bar" style={{ width: `${uploadProgress}%` }} />
+              <span className="progress-label">{uploadProgress}%</span>
+            </div>
+          )}
+
+          <div className="post-actions">
+            {isEventCreator && allImages.length > 0 && (
+              <button className="bulk-download-btn" onClick={openDownloadModal}>⬇ Bilder herunterladen</button>
+            )}
+            <button onClick={handlePostClick} disabled={loading}>
+              {loading ? (files.length > 0 ? `Lädt hoch… ${uploadProgress}%` : "Posting…") : "Post erstellen"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!isEnabled && (
+          <p>Memories Board ist leider noch nicht vom Veranstalter freigeschaltet.</p>
+      )}
+
       <div className="board-grid">
         {posts.map((post) => (
           <MomentCard
             key={post.id}
             post={post}
             canDelete={isEventCreator || post.userId === userId}
+            canDownload={isEventCreator}
             onDelete={() => handleDeletePost(post.id)}
             onDownload={handleDownloadImage}
           />
         ))}
       </div>
 
-      {/* ── Guest name dialog ── */}
       {showNameDialog && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowNameDialog(false)}
-        >
-          <div
-            className="modal-box name-dialog"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="modal-overlay" onClick={() => setShowNameDialog(false)}>
+          <div className="modal-box name-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Wie heißt du?</h2>
-              <button
-                className="modal-close"
-                onClick={() => setShowNameDialog(false)}
-              >
-                ✕
-              </button>
+              <button className="modal-close" onClick={() => setShowNameDialog(false)}>✕</button>
             </div>
-            <p className="name-dialog-hint">
-              Dein Name wird am Post angezeigt.
-            </p>
+            <p className="name-dialog-hint">Dein Name wird am Post angezeigt.</p>
             <div className="name-inputs">
-              <input
-                className="name-input"
-                type="text"
-                placeholder="Vorname"
-                value={guestFirstName}
-                onChange={(e) => setGuestFirstName(e.target.value)}
-                autoFocus
-              />
-              <input
-                className="name-input"
-                type="text"
-                placeholder="Nachname"
-                value={guestLastName}
-                onChange={(e) => setGuestLastName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleGuestNameConfirm();
-                }}
-              />
+              <input className="name-input" type="text" placeholder="Vorname"  value={guestFirstName} onChange={(e) => setGuestFirstName(e.target.value)} autoFocus />
+              <input className="name-input" type="text" placeholder="Nachname" value={guestLastName}  onChange={(e) => setGuestLastName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleGuestNameConfirm(); }} />
             </div>
-            <button
-              className="download-all-btn"
-              disabled={!guestFirstName.trim() || !guestLastName.trim()}
-              onClick={handleGuestNameConfirm}
-            >
+            <button className="download-all-btn" disabled={!guestFirstName.trim() || !guestLastName.trim()} onClick={handleGuestNameConfirm}>
               Weiter & posten
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Bulk download modal ── */}
       {showDownloadModal && (
-        <div
-          className="modal-overlay"
-          onClick={() => !zipping && setShowDownloadModal(false)}
-        >
+        <div className="modal-overlay" onClick={() => !zipping && setShowDownloadModal(false)}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Bilder auswählen</h2>
-              <button
-                className="modal-close"
-                onClick={() => setShowDownloadModal(false)}
-                disabled={zipping}
-              >
-                ✕
-              </button>
+              <button className="modal-close" onClick={() => setShowDownloadModal(false)} disabled={zipping}>✕</button>
             </div>
             <div className="modal-actions">
-              <button className="sel-btn" onClick={selectAll} disabled={zipping}>
-                Alle auswählen
-              </button>
-              <button className="sel-btn" onClick={deselectAll} disabled={zipping}>
-                Alle abwählen
-              </button>
+              <button className="sel-btn" onClick={selectAll}   disabled={zipping}>Alle auswählen</button>
+              <button className="sel-btn" onClick={deselectAll} disabled={zipping}>Alle abwählen</button>
               <span className="sel-count">{selectedImages.size} ausgewählt</span>
             </div>
             <div className="modal-grid">
               {allImages.map((url, i) => (
                 <div
                   key={i}
-                  className={`modal-img-wrap ${
-                    selectedImages.has(url) ? "selected" : ""
-                  }`}
+                  className={`modal-img-wrap ${selectedImages.has(url) ? "selected" : ""}`}
                   onClick={() => !zipping && toggleImage(url)}
                 >
-                  <img
-                    src={optimizedCloudinaryUrl(url, 300)}
-                    className="modal-img"
-                    alt=""
-                    loading="lazy"
-                  />
-                  {selectedImages.has(url) && (
-                    <div className="modal-check">✓</div>
-                  )}
+                  <img src={optimizedCloudinaryUrl(url, 300)} className="modal-img" alt="" loading="lazy" />
+                  {selectedImages.has(url) && <div className="modal-check">✓</div>}
                 </div>
               ))}
             </div>
-
             {zipping && (
               <div className="progress-wrap">
-                <div
-                  className="progress-bar"
-                  style={{ width: `${zipProgress}%` }}
-                />
+                <div className="progress-bar" style={{ width: `${zipProgress}%` }} />
                 <span className="progress-label">{zipProgress}%</span>
               </div>
             )}
-
-            <button
-              className="download-all-btn"
-              disabled={selectedImages.size === 0 || zipping}
-              onClick={handleBulkDownload}
-            >
-              {zipping
-                ? `Erstelle ZIP… ${zipProgress}%`
-                : `⬇ ${selectedImages.size} Bilder als ZIP herunterladen`}
+            <button className="download-all-btn" disabled={selectedImages.size === 0 || zipping} onClick={handleBulkDownload}>
+              {zipping ? `Erstelle ZIP… ${zipProgress}%` : `⬇ ${selectedImages.size} Bilder als ZIP herunterladen`}
             </button>
           </div>
         </div>

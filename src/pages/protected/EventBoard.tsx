@@ -49,6 +49,7 @@ export default function EventBoard({
   const [color, setColor] = useState(COLORS[0]);
   const [eventName, setEventName] = useState<string>("");
   const [isCreator, setIsCreator] = useState(false);
+  const [isEnabled, setBoardEnabled] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -57,6 +58,7 @@ export default function EventBoard({
       if (event) {
         setEventName(event.title);
         setIsCreator(event.creatorId === userId);
+        setBoardEnabled(event.pinboardEnabled);
       }
     };
 
@@ -113,80 +115,88 @@ export default function EventBoard({
 
       <div className="divider" />
 
-      <div className="board-grid">
+      {isEnabled && (
+        <div className="board-grid">
 
-        <div className="post-add-card">
+          <div className="post-add-card">
 
-          <textarea
-            placeholder="Schreibe etwas..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
+            <textarea
+              placeholder="Schreibe etwas..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
 
-          <div className="mini-colors">
-            {COLORS.map((c) => (
-              <span
-                key={c}
-                className={`mini-dot ${color === c ? "active" : ""}`}
-                style={{ background: c }}
-                onClick={() => setColor(c)}
-              />
-            ))}
-          </div>
+            <div className="mini-colors">
+              {COLORS.map((c) => (
+                <span
+                  key={c}
+                  className={`mini-dot ${color === c ? "active" : ""}`}
+                  style={{ background: c }}
+                  onClick={() => setColor(c)}
+                />
+              ))}
+            </div>
 
-          <button onClick={handlePost}>
-            + Posten
-          </button>
-
-        </div>
-
-        {posts.map((post) => (
-        <div
-          key={post.id}
-          className="post-card"
-          style={{
-            background:
-              post.color || "rgba(233, 203, 169, 0.712)",
-          }}
-        >
-
-          {(isCreator || post.userId === userId) && (
-            <button
-              className="delete-post"
-              onClick={(e) => {
-                e.stopPropagation();
-
-                const confirmed = window.confirm(
-                  "Möchtest du diesen Post wirklich löschen?"
-                );
-
-                if (confirmed && post.id) {
-                  handleDelete(post.id);
-                }
-              }}
-            >
-              ✕
+            <button onClick={handlePost}>
+              + Posten
             </button>
-          )}
 
-          <div className="post-header">
-            <strong>{post.userName}</strong>
-
-            <span>
-              {post.createdAt
-                ?.toDate?.()
-                .toLocaleString?.() || ""}
-            </span>
           </div>
 
-          <p className="card-text">
-            {post.text}
-          </p>
+          {posts.map((post) => (
+          <div
+            key={post.id}
+            className="post-card"
+            style={{
+              background:
+                post.color || "rgba(233, 203, 169, 0.712)",
+            }}
+          >
+
+            {(isCreator || post.userId === userId) && (
+              <button
+                className="delete-post"
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  const confirmed = window.confirm(
+                    "Möchtest du diesen Post wirklich löschen?"
+                  );
+
+                  if (confirmed && post.id) {
+                    handleDelete(post.id);
+                  }
+                }}
+              >
+                ✕
+              </button>
+            )}
+
+            <div className="post-header">
+              <strong>{post.userName}</strong>
+
+              <span>
+                {post.createdAt
+                  ?.toDate?.()
+                  .toLocaleString?.() || ""}
+              </span>
+            </div>
+
+            <p className="card-text">
+              {post.text}
+            </p>
+
+          </div>
+        ))}
 
         </div>
-      ))}
+      )}
 
-      </div>
+      {!isEnabled && (
+          <p>Pinnwand ist leider noch nicht vom Veranstalter freigeschaltet.</p>
+      )}
+
+
     </div>
   );
 }
