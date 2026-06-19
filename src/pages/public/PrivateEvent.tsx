@@ -227,11 +227,13 @@ const AttendeeCard = ({ attendee, isCreator, onDelete, dragHandlers }: AttendeeC
           }
         }}
       >
-        ✕
+        ×
       </button>
     )}
     <strong>{attendee.firstName} {attendee.lastName}</strong>
-    <span>{attendee.status === "yes" ? "✅" : "❌"}</span>
+    <span className={`attendee-status ${attendee.status === "yes" ? "yes" : "no"}`}>
+      {attendee.status === "yes" ? "Zugesagt" : "Abgesagt"}
+    </span>
     <span>{attendee.guests} Personen</span>
     {attendee.comment && <p>{attendee.comment}</p>}
   </div>
@@ -479,106 +481,106 @@ const PrivateEvent = () => {
 
             {event.eventDate && (
               <div className="event-date-badge">
-                <span className="event-date-icon">📅</span>
                 <span>{formatDate(event.eventDate)}</span>
               </div>
             )}
+
+            <div className="event-content">
+              <img
+                className="event-img"
+                src={event?.imagePath || "/images/sonstige-veranstaltung.png"}
+                alt=""
+              />
+              <div className="event-description-wrap">
+                {editingDesc ? (
+                  <div className="desc-edit-area">
+                    <textarea
+                      className="desc-textarea"
+                      value={descDraft}
+                      onChange={(e) => setDescDraft(e.target.value)}
+                      rows={6}
+                      autoFocus
+                    />
+                    <div className="desc-edit-actions">
+                      <button className="desc-save-btn" onClick={handleSaveDescription}>Speichern</button>
+                      <button className="desc-cancel-btn" onClick={() => { setEditingDesc(false); setDescDraft(event.description || ""); }}>Abbrechen</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="desc-display">
+                    {isCreator && (
+                      <button className="desc-edit-btn" title="Beschreibung bearbeiten" onClick={() => { setDescDraft(event.description || ""); setEditingDesc(true); }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                        </svg>
+                      </button>
+                    )}
+                    <p className="desc-text">{event.description}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="event-content-right">
+                {!alreadyRSVP && !isCreator && (
+                  <button className="open-rsvp-btn" onClick={() => setShowRSVPModal(true)}>Rückmelden</button>
+                )}
+                {alreadyRSVP && !isCreator && <span className="rsvp-done">Erfolgreich zurückgemeldet</span>}
+                {!isLoggedIn && !isCreator && (
+                  <button
+                    className="login-save-btn"
+                    onClick={() => { localStorage.setItem("redirectEvent", id!); navigate("/login"); }}
+                  >
+                    Einloggen & Event speichern
+                  </button>
+                )}
+              </div>
+            </div>
 
             {isCreator && (
               <div className="creator-panel">
                 <div className="creator-actions">
                   <button className="copy-link-btn" onClick={handleCopyLink}>
-                    {copied ? "✅ Kopiert!" : "🔗 Link kopieren"}
+                    {copied ? "Link kopiert ✅" : "Link kopieren"}
                   </button>
                   <button className="qr-btn" onClick={() => setShowQRModal(true)}>
-                    📱 QR-Code anzeigen
+                    QR-Code anzeigen
                   </button>
-                  <button className="toggle-btn" onClick={toggleAttendeesVisibility}>
-                    {event.showAttendees ? "👁 Liste sichtbar" : "🙈 Liste verborgen"}
+                  <button
+                    className={`toggle-btn ${event.showAttendees ? "active" : ""}`}
+                    onClick={toggleAttendeesVisibility}
+                  >
+                    {event.showAttendees ? "Teilnehmerliste öffentlich" : "Teilnehmerliste verborgen"}
                   </button>
-                </div>
 
-                {/* Board unlock buttons */}
-                <div className="board-actions">
                   <button
                     className={`board-btn ${event.memoriesBoardEnabled ? "board-active" : ""}`}
                     onClick={() => handleToggleBoard("memoriesBoardEnabled")}
                   >
-                    {event.memoriesBoardEnabled ? "📸 Memories Board aktiv" : "📸 Memories freischalten"}
+                    {event.memoriesBoardEnabled ? "Memories Board aktiv" : "Memories freischalten"}
                   </button>
                   <button
                     className={`board-btn ${event.pinboardEnabled ? "board-active" : ""}`}
                     onClick={() => handleToggleBoard("pinboardEnabled")}
                   >
-                    {event.pinboardEnabled ? "📌 Pinboard aktiv" : "📌 Pinboard freischalten"}
+                    {event.pinboardEnabled ? "Pinwand aktiv" : "Pinwand freischalten"}
                   </button>
                 </div>
 
                 <div className="password-card">
-                  <h3>🔐 Sicherheit</h3>
+                  <h3>Sicherheit</h3>
                   <div className="password-row">
                     <span>Passwort:</span>
                     <strong>{event.password || "Keins gesetzt"}</strong>
                   </div>
                   <button className="edit-password-btn" onClick={() => setShowPasswordModal(true)}>
-                    ✏️ Passwort ändern
+                    Passwort ändern
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          <img
-            className="event-img"
-            src={event?.imagePath || "/images/sonstige-veranstaltung.png"}
-            alt=""
-          />
           <div className="overlay" />
-        </div>
-
-        {/* description */}
-        <div className="event-content">
-          <div className="event-description-wrap">
-            {editingDesc ? (
-              <div className="desc-edit-area">
-                <textarea
-                  className="desc-textarea"
-                  value={descDraft}
-                  onChange={(e) => setDescDraft(e.target.value)}
-                  rows={6}
-                  autoFocus
-                />
-                <div className="desc-edit-actions">
-                  <button className="desc-save-btn" onClick={handleSaveDescription}>💾 Speichern</button>
-                  <button className="desc-cancel-btn" onClick={() => { setEditingDesc(false); setDescDraft(event.description || ""); }}>Abbrechen</button>
-                </div>
-              </div>
-            ) : (
-              <div className="desc-display">
-                <p className="desc-text">{event.description}</p>
-                {isCreator && (
-                  <button className="desc-edit-btn" title="Beschreibung bearbeiten" onClick={() => { setDescDraft(event.description || ""); setEditingDesc(true); }}>
-                    ✏️
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="event-content-right">
-            {!alreadyRSVP && !isCreator && (
-              <button className="open-rsvp-btn" onClick={() => setShowRSVPModal(true)}>Rückmelden</button>
-            )}
-            {alreadyRSVP && !isCreator && <span className="rsvp-done">✅ Erfolgreich zurückgemeldet!</span>}
-            {!isLoggedIn && !isCreator && (
-              <button
-                className="login-save-btn"
-                onClick={() => { localStorage.setItem("redirectEvent", id!); navigate("/login"); }}
-              >
-                Einloggen & Event speichern
-              </button>
-            )}
-          </div>
         </div>
 
         {/* ungrouped attendees */}
@@ -642,12 +644,12 @@ const PrivateEvent = () => {
           </div>
         )}
 
-        {/* ── QR Modal ── */}
+        {/* QR modal */}
         {showQRModal && (
           <div className="modal-overlay" onClick={() => setShowQRModal(false)}>
             <div className="modal qr-modal" onClick={(e) => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowQRModal(false)}>✖</button>
-              <h2>📱 QR-Code</h2>
+              <button className="modal-close" onClick={() => setShowQRModal(false)}>×</button>
+              <h2>QR-Code</h2>
               <p className="qr-modal-sub">Teile diesen Code als Einladung</p>
               <div className="qr-canvas-wrap">
                 <QRCodeCanvas
@@ -662,7 +664,7 @@ const PrivateEvent = () => {
               </div>
               <p className="qr-link-text">{eventLink}</p>
               <button className="qr-download-btn" onClick={handleDownloadQR}>
-                ⬇️ Als Bild herunterladen
+                Als Bild herunterladen
               </button>
             </div>
           </div>
@@ -673,9 +675,9 @@ const PrivateEvent = () => {
           <div className="modal-overlay" onClick={() => setShowRSVPModal(false)}>
             <div className="rsvp-modal" onClick={(e) => e.stopPropagation()}>
               <div className="rsvp-header">
-                <h2>🎉 Rückmeldung</h2>
+                <h2>Rückmeldung</h2>
                 <p>Sag uns kurz ob du kommst</p>
-                <button className="rsvp-modal-close" onClick={() => setShowRSVPModal(false)}>✖</button>
+                <button className="rsvp-modal-close" onClick={() => setShowRSVPModal(false)}>×</button>
               </div>
               <div className="rsvp-body">
                 <input placeholder="Vorname" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
@@ -687,8 +689,8 @@ const PrivateEvent = () => {
                 />
                 <textarea placeholder="Kommentar (optional)" value={comment} onChange={(e) => setComment(e.target.value)} />
                 <div className="rsvp-choice">
-                  <button className={status === "yes" ? "active yes" : ""} onClick={() => setStatus("yes")}>✅ Ich komme</button>
-                  <button className={status === "no"  ? "active no"  : ""} onClick={() => setStatus("no")}>❌ Leider nicht</button>
+                  <button className={status === "yes" ? "active yes" : ""} onClick={() => setStatus("yes")}>Ich komme</button>
+                  <button className={status === "no"  ? "active no"  : ""} onClick={() => setStatus("no")}>Leider nicht</button>
                 </div>
                 <button className="rsvp-submit" onClick={handleRSVP}>Absenden</button>
               </div>
@@ -700,8 +702,8 @@ const PrivateEvent = () => {
         {showPasswordModal && (
           <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowPasswordModal(false)}>✖</button>
-              <h2>🔐 Passwort ändern</h2>
+              <button className="modal-close" onClick={() => setShowPasswordModal(false)}>×</button>
+              <h2>Passwort ändern</h2>
               <p>Aktuell: <strong>{event.password || "Keins gesetzt"}</strong></p>
               <input
                 type="text" placeholder="Neues Passwort" value={newPassword}

@@ -27,6 +27,7 @@
 .load-event {
   padding: 80px;
   font-size: 24px;
+  text-align: center;
 }
 
 [data-theme="dark"] .event-hero {
@@ -45,6 +46,7 @@
   z-index: 2;
   position: relative;
   border-radius: 24px 0 0 24px;
+  align-items: center;
 }
 
 .event-title {
@@ -52,6 +54,7 @@
   font-weight: 800;
   line-height: 1.1;
   color: var(--text-h);
+  margin: 50px auto;
   word-break: break-word;
 }
 
@@ -59,8 +62,10 @@
    DATE BADGE
 ========================= */
 .event-date-badge {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  margin: 0 auto;
   gap: 8px;
   padding: 8px 16px;
   border-radius: 40px;
@@ -71,10 +76,7 @@
   color: var(--text);
   width: fit-content;
   backdrop-filter: blur(8px);
-}
-
-.event-date-icon {
-  font-size: 1rem;
+  letter-spacing: 0.01em;
 }
 
 /* =========================
@@ -86,6 +88,7 @@
   flex-direction: column;
   gap: 14px;
   width: 100%;
+  max-width: 420px;
   padding: 14px;
   border-radius: 16px;
   background: rgba(255, 240, 220, 0.35);
@@ -96,18 +99,14 @@
 
 .creator-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
-/* Board unlock buttons */
-.board-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
 
-.board-btn {
+.board-btn,
+.toggle-btn {
   flex: 1;
   min-width: 180px;
   padding: 11px 14px;
@@ -119,19 +118,12 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
-  font-size: 0.88rem;
 }
 
-.board-btn:hover {
+.board-btn:hover,
+.toggle-btn:hover {
   transform: translateY(-2px);
   background: rgba(200, 160, 110, 0.2);
-}
-
-.board-btn.board-active {
-  background: linear-gradient(135deg, #c8a26a, #a77c4a);
-  color: #1a1410;
-  border-color: transparent;
-  box-shadow: 0 6px 18px rgba(160, 120, 80, 0.3);
 }
 
 .password-card {
@@ -139,6 +131,15 @@
   background: rgba(255, 240, 220, 0.35);
   border: 1px solid rgba(200, 160, 110, 0.25);
   padding: 14px;
+}
+
+.password-card h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .password-card button {
@@ -160,16 +161,28 @@ button {
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  font-weight: 600;
   transition: 0.2s ease;
+}
+
+.creator-actions .board-btn,
+.creator-actions .toggle-btn{
+  background: rgba(255, 240, 220, 0.12);
+  border: 1px solid rgba(200, 160, 110, 0.25);
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.creator-actions .board-btn.board-active,
+.creator-actions .toggle-btn.active {
+  background: linear-gradient(135deg, #c8a26a, #a77c4a);
+  color: #1a1410;
+  border-color: transparent;
 }
 
 .open-rsvp-btn,
 .edit-password-btn,
+.copy-link-btn,
 .qr-btn,
-.creator-actions button,
-.event-board-btn,
-.event-post-btn,
 button.active {
   background: linear-gradient(135deg, #c8a26a, #a77c4a);
   color: #1a1410;
@@ -179,16 +192,6 @@ button.active {
 
 button:hover {
   transform: translateY(-2px);
-}
-
-.copy-link-btn,
-.toggle-btn {
-  flex: 1;
-  min-width: 160px;
-  background: rgba(255, 240, 220, 0.1);
-  border: 1px solid rgba(200, 160, 110, 0.25);
-  color: var(--text);
-  padding: 10px 14px;
 }
 
 .qr-btn {
@@ -203,8 +206,8 @@ button:hover {
   margin: 40px;
   padding: 32px 36px;
   display: flex;
+  width: 100%;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 28px;
   background: rgba(255, 255, 255, 0.35);
   border-radius: 18px;
@@ -218,46 +221,54 @@ button:hover {
 
 .event-description-wrap {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .desc-display {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
 }
 
 .desc-text {
   white-space: pre-line;
   line-height: 1.7;
   margin: 0;
-  flex: 1;
+  padding-right: 36px;
   text-align: center;
   font-size: 1rem;
   color: var(--text);
 }
 
 .desc-edit-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
   flex-shrink: 0;
   background: rgba(200, 160, 110, 0.12);
   border: 1px solid rgba(200, 160, 110, 0.25);
   color: var(--text);
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 2px;
+}
+
+.desc-edit-btn svg {
+  width: 15px;
+  height: 15px;
+  display: block;
 }
 
 .desc-edit-btn:hover {
   background: rgba(200, 160, 110, 0.25);
-  transform: scale(1.08);
+  border-color: rgba(200, 160, 110, 0.4);
+  transform: translateY(-1px);
 }
 
 .desc-edit-area {
@@ -329,6 +340,7 @@ button:hover {
 .rsvp-done {
   font-weight: 600;
   font-size: 0.95rem;
+  color: var(--text-h);
 }
 
 .login-save-btn {
@@ -390,6 +402,39 @@ button:hover {
   box-shadow: none;
 }
 
+.attendee-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.attendee-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9a9a9a;
+}
+
+.attendee-status.yes {
+  color: #4a8a5c;
+}
+
+.attendee-status.yes::before {
+  background: #4a8a5c;
+}
+
+.attendee-status.no {
+  color: #b5564b;
+}
+
+.attendee-status.no::before {
+  background: #b5564b;
+}
+
 .delete-attendee {
   position: absolute;
   top: 10px;
@@ -406,6 +451,8 @@ button:hover {
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s, transform 0.2s;
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .attendee:hover .delete-attendee {
@@ -494,8 +541,9 @@ button:hover {
 }
 
 .group-add-card span {
-  font-size: 42px;
+  font-size: 32px;
   font-weight: 700;
+  line-height: 1;
 }
 
 /* =========================
@@ -540,7 +588,8 @@ button:hover {
   background: rgba(200, 160, 110, 0.12);
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -655,6 +704,7 @@ button:hover {
   background: rgba(255, 255, 255, 0.4);
   outline: none;
   color: var(--text);
+  font-size: 16px; /* verhindert Auto-Zoom auf iOS */
 }
 
 .rsvp-body textarea {
@@ -701,6 +751,7 @@ button:hover {
   background: rgba(255, 255, 255, 0.4);
   outline: none;
   color: var(--text);
+  font-size: 16px; /* verhindert Auto-Zoom auf iOS */
 }
 
 .modal h2,
@@ -757,6 +808,7 @@ button:hover {
   color: #1a1410;
   padding: 12px 16px;
   box-shadow: 0 10px 25px rgba(160, 120, 80, 0.25);
+  font-size: 16px;
 }
 
 .password-screen button {
@@ -851,11 +903,8 @@ button:hover {
     text-align: left;
   }
 
-  .board-actions {
-    flex-direction: column;
-  }
-
-  .board-btn {
+  .board-btn,
+  .toggle-btn {
     min-width: unset;
     width: 100%;
   }

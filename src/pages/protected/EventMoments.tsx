@@ -10,11 +10,11 @@ import {
 } from "firebase/firestore";
 import JSZip from "jszip";
 import { db } from "../../firebase";
-import { getFunctions, httpsCallable } from "firebase/functions";
 import {
   uploadImageToCloudinary,
   optimizedCloudinaryUrl,
 } from "../../services/database/cloudinary-service";
+import { deleteFromCloudinary } from "../../services/database/cloudinary-service";
 import "./EventMoments.css";
 import MomentCard from "../../components/MomentCard";
 import { getEventById } from "../../services/database/private-event-service";
@@ -92,23 +92,6 @@ async function uploadInBatches<T>(
   await Promise.all(runners);
 }
 
-// ── Cloudinary delete helper ──────────────────────────────────────────────────
-// Ruft die Firebase Cloud Function auf, die die Bilder serverseitig löscht.
-// Schlägt die Funktion fehl (z.B. nicht deployed), wird nur geloggt –
-// der Firestore-Post wird in jedem Fall entfernt.
-const deleteFromCloudinary = async (imageUrls: string[]) => {
-  if (imageUrls.length === 0) return;
-  try {
-    const functions  = getFunctions();
-    const deleteFn   = httpsCallable(functions, "deleteCloudinaryImages");
-    const result     = await deleteFn({ imageUrls });
-    console.log("Cloudinary delete results:", result.data);
-  } catch (err) {
-    // Nicht-kritisch: Firestore-Eintrag wird trotzdem gelöscht
-    console.warn("Cloudinary-Löschung fehlgeschlagen (Bilder bleiben ggf. erhalten):", err);
-  }
-};
-
 const EventMoments = ({
   eventId,
   userId,
@@ -127,7 +110,7 @@ const EventMoments = ({
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [eventName,      setEventName]      = useState<string>("");
 
-  // ── Guest name dialog ────────────────────────────────────────────────────────
+  const [isEnabled,       setBoardEnabled]    = useState(false);
   const [showNameDialog,  setShowNameDialog]  = useState(false);
   const [guestFirstName,  setGuestFirstName]  = useState("");
   const [guestLastName,   setGuestLastName]   = useState("");
@@ -137,7 +120,6 @@ const EventMoments = ({
     if (userName) setResolvedName(userName);
   }, [userName]);
 
-  // ── Bulk download state ──────────────────────────────────────────────────────
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [selectedImages,    setSelectedImages]    = useState<Set<string>>(new Set());
   const [zipping,           setZipping]           = useState(false);
@@ -146,6 +128,7 @@ const EventMoments = ({
   useEffect(() => {
     const load = async () => {
       const event = await getEventById(eventId);
+      setBoardEnabled(!!event?.memoriesBoardEnabled);
       if (event) setEventName(event.title);
       const q    = query(collection(db, "private-events", eventId, "moments"), orderBy("createdAt", "desc"));
       const snap = await getDocs(q);
@@ -154,7 +137,6 @@ const EventMoments = ({
     load();
   }, [eventId]);
 
-  // ── Open name dialog or start upload directly ────────────────────────────────
   const handlePostClick = () => {
     if (!text && files.length === 0) return;
     if (!resolvedName) {
@@ -174,7 +156,6 @@ const EventMoments = ({
     handleUpload(fullName);
   };
 
-  // ── Upload ───────────────────────────────────────────────────────────────────
   const handleUpload = async (displayName: string) => {
     if (!text && files.length === 0) return;
     setLoading(true);
@@ -216,21 +197,14 @@ const EventMoments = ({
     }
   };
 
-  // ── Delete post (+ Cloudinary images) ───────────────────────────────────────
   const handleDeletePost = async (postId: string) => {
     if (!confirm("Diesen Post wirklich löschen?")) return;
-
-    // Bilder des Posts ermitteln bevor der State-Eintrag verschwindet
-    const post = posts.find((p) => p.id === postId);
+    const post      = posts.find((p) => p.id === postId);
     const imageUrls = post?.images ?? [];
-
-    // 1. Firestore-Dokument löschen
     await deleteDoc(doc(db, "private-events", eventId, "moments", postId));
     setPosts((prev) => prev.filter((p) => p.id !== postId));
-
-    // 2. Cloudinary-Bilder im Hintergrund löschen (nicht-blockierend)
     if (imageUrls.length > 0) {
-      deleteFromCloudinary(imageUrls);
+      deleteFromCloudinary(imageUrls); // nicht-blockierend
     }
   };
 
@@ -257,7 +231,6 @@ const EventMoments = ({
     }
   };
 
-  // ── Bulk download ────────────────────────────────────────────────────────────
   const allImages = posts.flatMap((p) => p.images);
 
   const openDownloadModal = () => {
@@ -266,9 +239,9 @@ const EventMoments = ({
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  const toggleImage   = (url: string) => setSelectedImages((prev) => { const n = new Set(prev); n.has(url) ? n.delete(url) : n.add(url); return n; });
-  const selectAll     = () => setSelectedImages(new Set(allImages));
-  const deselectAll   = () => setSelectedImages(new Set());
+  const toggleImage = (url: string) => setSelectedImages((prev) => { const n = new Set(prev); n.has(url) ? n.delete(url) : n.add(url); return n; });
+  const selectAll   = () => setSelectedImages(new Set(allImages));
+  const deselectAll = () => setSelectedImages(new Set());
 
   const getExtensionFromUrl = (url: string) => url.match(/\.(jpg|jpeg|png|webp|gif)(?:\?|$)/i)?.[1].toLowerCase() ?? "jpg";
 
@@ -314,58 +287,63 @@ const EventMoments = ({
 
   return (
     <div className="board-container">
-      {/* ── Header ── */}
       <div className="board-info">
         <h1>Momente <br /> {eventName}</h1>
         <p>Teile Momente mit allen Teilnehmern</p>
       </div>
 
-      {/* ── Create post card ── */}
-      <div className="post-add-card">
-        <input
-          id="fileInput"
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => { if (!e.target.files) return; setFiles(Array.from(e.target.files)); }}
-          className="hidden-input"
-        />
-        <label htmlFor="fileInput" className="upload-label">
-          <div className="upload-icon">📷</div>
-          <div className="upload-text"><strong>Bilder hochladen</strong></div>
-        </label>
+      <div className="divider" />
 
-        {files.length > 0 && (
-          <div className="preview-row">
-            {files.map((file, i) => (
-              <div key={i} className="preview-item">
-                <img src={URL.createObjectURL(file)} className="preview-img" alt="" />
-                <button className="remove-preview" onClick={() => setFiles((prev) => prev.filter((_, idx) => idx !== i))} title="Bild entfernen">✕</button>
-              </div>
-            ))}
-          </div>
-        )}
+      {isEnabled && (
+        <div className="post-add-card">
+          <input
+            id="fileInput"
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => { if (!e.target.files) return; setFiles(Array.from(e.target.files)); }}
+            className="hidden-input"
+          />
+          <label htmlFor="fileInput" className="upload-label">
+            <div className="upload-icon">📷</div>
+            <div className="upload-text"><strong>Bilder hochladen</strong></div>
+          </label>
 
-        <textarea placeholder="Was geht ab..." value={text} onChange={(e) => setText(e.target.value)} />
-
-        {loading && files.length > 0 && (
-          <div className="progress-wrap">
-            <div className="progress-bar" style={{ width: `${uploadProgress}%` }} />
-            <span className="progress-label">{uploadProgress}%</span>
-          </div>
-        )}
-
-        <div className="post-actions">
-          {isEventCreator && allImages.length > 0 && (
-            <button className="bulk-download-btn" onClick={openDownloadModal}>⬇ Bilder herunterladen</button>
+          {files.length > 0 && (
+            <div className="preview-row">
+              {files.map((file, i) => (
+                <div key={i} className="preview-item">
+                  <img src={URL.createObjectURL(file)} className="preview-img" alt="" />
+                  <button className="remove-preview" onClick={() => setFiles((prev) => prev.filter((_, idx) => idx !== i))} title="Bild entfernen">✕</button>
+                </div>
+              ))}
+            </div>
           )}
-          <button onClick={handlePostClick} disabled={loading}>
-            {loading ? (files.length > 0 ? `Lädt hoch… ${uploadProgress}%` : "Posting…") : "Post erstellen"}
-          </button>
-        </div>
-      </div>
 
-      {/* ── Post grid ── */}
+          <textarea placeholder="Was geht ab..." value={text} onChange={(e) => setText(e.target.value)} />
+
+          {loading && files.length > 0 && (
+            <div className="progress-wrap">
+              <div className="progress-bar" style={{ width: `${uploadProgress}%` }} />
+              <span className="progress-label">{uploadProgress}%</span>
+            </div>
+          )}
+
+          <div className="post-actions">
+            {isEventCreator && allImages.length > 0 && (
+              <button className="bulk-download-btn" onClick={openDownloadModal}>⬇ Bilder herunterladen</button>
+            )}
+            <button onClick={handlePostClick} disabled={loading}>
+              {loading ? (files.length > 0 ? `Lädt hoch… ${uploadProgress}%` : "Posting…") : "Post erstellen"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!isEnabled && (
+          <p>Memories Board ist leider noch nicht vom Veranstalter freigeschaltet.</p>
+      )}
+
       <div className="board-grid">
         {posts.map((post) => (
           <MomentCard
@@ -379,7 +357,6 @@ const EventMoments = ({
         ))}
       </div>
 
-      {/* ── Guest name dialog ── */}
       {showNameDialog && (
         <div className="modal-overlay" onClick={() => setShowNameDialog(false)}>
           <div className="modal-box name-dialog" onClick={(e) => e.stopPropagation()}>
@@ -399,7 +376,6 @@ const EventMoments = ({
         </div>
       )}
 
-      {/* ── Bulk download modal ── */}
       {showDownloadModal && (
         <div className="modal-overlay" onClick={() => !zipping && setShowDownloadModal(false)}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>

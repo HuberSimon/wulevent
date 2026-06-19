@@ -1,7 +1,6 @@
 .board-container {
   margin-top: 40px;
   margin-bottom: 100px;
-  padding: 40px;
   min-height: 100vh;
 }
 
@@ -11,6 +10,7 @@
   font-weight: 800;
   line-height: 1.1;
   word-break: break-word;
+
 }
 
 /* ── Post grid ── */

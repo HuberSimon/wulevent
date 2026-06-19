@@ -8,7 +8,7 @@ import "./CreateEvent.css";
 const eventTypeImages: Record<string, string> = {
   Geburtstag: "/images/geburtstag.png",
   Hochzeit: "/images/hochzeit.png",
-  "sonstige Veranstaltung": "/images/default.png",
+  "sonstige Veranstaltung": "/images/sonstige-veranstaltung.png",
 };
 
 const CreateEventPage = () => {

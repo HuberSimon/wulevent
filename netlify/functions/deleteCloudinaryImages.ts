@@ -1,9 +1,8 @@
 import type { Handler } from "@netlify/functions";
-import crypto from "crypto";
-import process from "process";
+import crypto from "node:crypto";
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME!;
-const API_KEY    = process.env.CLOUDINARY_API_KEY!;
+const API_KEY = process.env.CLOUDINARY_API_KEY!;
 const API_SECRET = process.env.CLOUDINARY_API_SECRET!;
 
 function extractPublicId(url: string): string | null {
@@ -17,6 +16,7 @@ export const handler: Handler = async (event) => {
   }
 
   let imageUrls: string[] = [];
+
   try {
     imageUrls = JSON.parse(event.body ?? "{}").imageUrls ?? [];
   } catch {
@@ -32,29 +32,37 @@ export const handler: Handler = async (event) => {
   await Promise.all(
     imageUrls.map(async (url) => {
       const publicId = extractPublicId(url);
+
       if (!publicId) {
         results[url] = "skipped (no public_id)";
         return;
       }
 
       const timestamp = Math.round(Date.now() / 1000);
+
       const signature = crypto
         .createHash("sha1")
-        .update(`public_id=${publicId}&timestamp=${timestamp}${API_SECRET}`)
+        .update(
+          `public_id=${publicId}&timestamp=${timestamp}${API_SECRET}`
+        )
         .digest("hex");
 
       const body = new URLSearchParams({
         public_id: publicId,
-        timestamp:  String(timestamp),
-        api_key:    API_KEY,
+        timestamp: String(timestamp),
+        api_key: API_KEY,
         signature,
       });
 
-      const res  = await fetch(
+      const res = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/destroy`,
-        { method: "POST", body }
+        {
+          method: "POST",
+          body,
+        }
       );
-      const json = await res.json() as { result?: string };
+
+      const json = (await res.json()) as { result?: string };
       results[url] = json.result ?? "unknown";
     })
   );
