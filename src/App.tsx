@@ -31,7 +31,7 @@ import EventNavbar from './components/EventNavbar'
 
 import UnlockEvent from "./components/UnlockEvent"
 import { getEventById } from "./services/database/private-event-service"
-import Layout from './layouts/layout'
+import Layout from './layouts/BasicLayout'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user } = useAuth()
