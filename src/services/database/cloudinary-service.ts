@@ -1,5 +1,3 @@
-const CLOUD_NAME = import.meta.env.CLOUDINARY_CLOUD_NAME;
-
 export const uploadImageToCloudinary = async (
   file: File,
   eventId: string
@@ -10,7 +8,7 @@ export const uploadImageToCloudinary = async (
   formData.append("folder", `events/${eventId}/moments`);
 
   const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    `https://api.cloudinary.com/v1_1/dbn58pwgq/image/upload`,
     {
       method: "POST",
       body: formData,

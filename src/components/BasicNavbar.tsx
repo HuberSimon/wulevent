@@ -17,7 +17,7 @@ export default function BasicNavbar() {
         <div className="left">
           <Link className="logo" to="/">
             <img
-              src="/images/we_logo.png"
+              src="/images/logo.png"
               alt="Logo"
               className="logo-img"
             />
