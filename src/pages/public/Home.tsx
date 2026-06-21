@@ -84,10 +84,10 @@ function Home() {
         <div className="feature-card fade-up delay-8">
           <div className="feature-header">
             <div className="feature-icon">📌</div>
-            <h3>Pinwand</h3>
+            <h3>Pinnwand</h3>
           </div>
           <p>
-            Nachrichten, Wünsche und Grüße werden auf einer Pinwand sichtbar.
+            Nachrichten, Wünsche und Grüße werden auf einer Pinnwand sichtbar.
           </p>
         </div>
 

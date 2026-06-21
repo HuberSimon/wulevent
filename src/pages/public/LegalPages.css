@@ -1,0 +1,94 @@
+.impressum,
+.datenschutz {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 75px 1.5rem 4rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #2a2a2a;
+  line-height: 1.65;
+}
+
+.impressum h1,
+.datenschutz h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  letter-spacing: -0.01em;
+}
+
+.impressum section,
+.datenschutz section {
+  margin-bottom: 2.25rem;
+}
+
+.impressum h2,
+.datenschutz h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 0.4rem;
+}
+
+.datenschutz h3 {
+  font-size: 1rem;
+  margin: 1rem 0 0.4rem;
+  color: #3a3a3a;
+}
+
+.impressum p,
+.datenschutz p {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.impressum ul,
+.datenschutz ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+  font-size: 0.95rem;
+}
+
+.impressum li,
+.datenschutz li {
+  margin-bottom: 0.35rem;
+}
+
+.impressum a,
+.datenschutz a {
+  color: #1a1a1a;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 0, 0, 0.3);
+  text-underline-offset: 2px;
+}
+
+.impressum a:hover,
+.datenschutz a:hover {
+  text-decoration-color: #1a1a1a;
+}
+
+.datenschutz__stand {
+  font-size: 0.8rem;
+  color: #8a8a8a;
+  margin-top: 2.5rem;
+}
+
+.impressum__back,
+.datenschutz__back {
+  margin-top: 2rem;
+}
+
+.impressum__back a,
+.datenschutz__back a {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .impressum,
+  .datenschutz {
+    padding: 75px 1rem 3rem;
+  }
+
+  .impressum h1,
+  .datenschutz h1 {
+    font-size: 1.6rem;
+  }
+}

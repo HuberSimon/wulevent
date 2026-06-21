@@ -50,35 +50,49 @@ export default function EventBoard({
   const [eventName, setEventName] = useState<string>("");
   const [isCreator, setIsCreator] = useState(false);
   const [isEnabled, setBoardEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const event = await getEventById(eventId);
+    let unsub: (() => void) | undefined;
 
-      if (event) {
-        setEventName(event.title);
-        setIsCreator(event.creatorId === userId);
-        setBoardEnabled(event.pinboardEnabled);
+    const load = async () => {
+      try {
+        setLoading(true);
+
+        const event = await getEventById(eventId);
+
+        if (event) {
+          setEventName(event.title);
+          setIsCreator(event.creatorId === userId);
+          setBoardEnabled(event.pinboardEnabled);
+        }
+
+        const q = query(
+          collection(db, "private-events", eventId, "posts"),
+          orderBy("createdAt", "desc")
+        );
+
+        unsub = onSnapshot(q, (snap) => {
+          setPosts(
+            snap.docs.map((doc) => ({
+              id: doc.id,
+              ...(doc.data() as Post),
+            }))
+          );
+        });
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
     load();
 
-    const q = query(
-      collection(db, "private-events", eventId, "posts"),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsub = onSnapshot(q, (snap) => {
-      setPosts(
-        snap.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as Post),
-        }))
-      );
-    });
-
-    return () => unsub();
+    return () => {
+      if (unsub) unsub();
+    };
   }, [eventId]);
 
   const handlePost = async () => {
@@ -104,6 +118,14 @@ export default function EventBoard({
       console.error("Post löschen fehlgeschlagen:", err);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="loader-screen">
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <div className="board-container">

@@ -22,80 +22,85 @@ const Dashboard = () => {
     const load = async () => {
       if (!user) return;
 
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      const createdSnap = await getDocs(
-        collection(db, "users", user.uid, "createdEvents")
-      );
+        const createdSnap = await getDocs(
+          collection(db, "users", user.uid, "createdEvents")
+        );
 
-      const created = await Promise.all(
-        createdSnap.docs.map(async (d) => {
-          const eventId = d.id;
+        const created = await Promise.all(
+          createdSnap.docs.map(async (d) => {
+            const eventId = d.id;
 
-          const eventDoc = await getDoc(doc(db, "private-events", eventId));
-          if (!eventDoc.exists()) return null;
+            const eventDoc = await getDoc(doc(db, "private-events", eventId));
+            if (!eventDoc.exists()) return null;
 
-          const eventData = eventDoc.data();
+            const eventData = eventDoc.data();
 
-          const rsvpSnap = await getDocs(
-            collection(db, "private-events", eventId, "attendees")
-          );
+            const rsvpSnap = await getDocs(
+              collection(db, "private-events", eventId, "attendees")
+            );
 
-          let count = 0;
+            let count = 0;
 
-          rsvpSnap.docs.forEach((doc) => {
-            const data = doc.data();
-            if (data.status === "yes") {
-              count += data.guests || 1;
-            }
-          });
+            rsvpSnap.docs.forEach((doc) => {
+              const data = doc.data();
+              if (data.status === "yes") {
+                count += data.guests || 1;
+              }
+            });
 
-          return {
-            id: eventId,
-            ...eventData,
-            attendeeCount: count,
-          };
-        })
-      );
+            return {
+              id: eventId,
+              ...eventData,
+              attendeeCount: count,
+            };
+          })
+        );
 
-      const invitedSnap = await getDocs(
-        collection(db, "users", user.uid, "invitedEvents")
-      );
+        const invitedSnap = await getDocs(
+          collection(db, "users", user.uid, "invitedEvents")
+        );
 
-      const invited = await Promise.all(
-        invitedSnap.docs.map(async (d) => {
-          const eventId = d.id;
+        const invited = await Promise.all(
+          invitedSnap.docs.map(async (d) => {
+            const eventId = d.id;
 
-          const eventDoc = await getDoc(doc(db, "private-events", eventId));
-          if (!eventDoc.exists()) return null;
+            const eventDoc = await getDoc(doc(db, "private-events", eventId));
+            if (!eventDoc.exists()) return null;
 
-          const eventData = eventDoc.data();
+            const eventData = eventDoc.data();
 
-          const rsvpSnap = await getDocs(
-            collection(db, "private-events", eventId, "attendees")
-          );
+            const rsvpSnap = await getDocs(
+              collection(db, "private-events", eventId, "attendees")
+            );
 
-          let count = 0;
+            let count = 0;
 
-          rsvpSnap.docs.forEach((doc) => {
-            const data = doc.data();
-            if (data.status === "yes") {
-              count += data.guests || 1;
-            }
-          });
+            rsvpSnap.docs.forEach((doc) => {
+              const data = doc.data();
+              if (data.status === "yes") {
+                count += data.guests || 1;
+              }
+            });
 
-          return {
-            id: eventId,
-            ...eventData,
-            attendeeCount: count,
-          };
-        })
-      );
+            return {
+              id: eventId,
+              ...eventData,
+              attendeeCount: count,
+            };
+          })
+        );
 
-      setCreatedEvents(created.filter(Boolean));
-      setInvitedEvents(invited.filter(Boolean));
+        setCreatedEvents(created.filter(Boolean));
+        setInvitedEvents(invited.filter(Boolean));
 
-      setLoading(false);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();
@@ -123,21 +128,27 @@ const Dashboard = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="loader-screen">
+        <div className="spinner" />
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard">
 
       <div className="dashboard-info">
-        <h1>Hey {user?.displayName} 👋</h1>
+        <h1>Hey {user?.displayName}</h1>
         <p>Erstelle und verwalte deine Veranstaltungen</p>
       </div>
 
       <div className="divider" />
 
-      {loading && <p>Lade Events...</p>}
-
       <h2>Eingeladen</h2>
 
-      {!loading && invitedEvents.length === 0 && (
+      {invitedEvents.length === 0 && (
         <div className="empty-state">
           <p>Noch in keine Veranstaltungen eingeladen...</p>
         </div>
@@ -160,7 +171,7 @@ const Dashboard = () => {
 
       <h2>Meine Veranstaltungen</h2>
 
-      {!loading && createdEvents.length === 0 && (
+      {createdEvents.length === 0 && (
         <div className="empty-state">
           <p>Noch keine Veranstaltung erstellt...</p>
         </div>

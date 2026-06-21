@@ -21,10 +21,11 @@
 .left {
   position: absolute;
   left: 20px;
+  height: 100%;
 }
 
 .logo-img {
-  height: 40px;
+  height: 100%;
 }
 
 /* RIGHT */

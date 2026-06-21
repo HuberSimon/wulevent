@@ -14,6 +14,8 @@ import { Toaster } from 'react-hot-toast'
 import Home from './pages/public/Home'
 import Authentication from './pages/public/Authentication'
 import PrivateEvent from './pages/public/PrivateEvent'
+import Impressum from './pages/public/Impressum'
+import Datenschutz from './pages/public/Datenschutz'
 import Dashboard from './pages/protected/Dashboard'
 import CreateEvent from './pages/protected/CreateEvent'
 import EventBoard from './pages/protected/EventBoard'
@@ -29,6 +31,7 @@ import EventNavbar from './components/EventNavbar'
 
 import UnlockEvent from "./components/UnlockEvent"
 import { getEventById } from "./services/database/private-event-service"
+import Layout from './layouts/layout'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user } = useAuth()
@@ -41,6 +44,7 @@ function AnimatedRoutes() {
 
   return (
     <>
+    <Layout>
     <BasicNavbar />
     {isEventRoute && <EventNavbar />}
 
@@ -107,9 +111,24 @@ function AnimatedRoutes() {
               }
             />
 
+            <Route 
+              path="/impressum" 
+              element={
+                    <Impressum />
+              } 
+            />
+
+            <Route 
+              path="/datenschutz" 
+              element={
+                      <Datenschutz />
+              } 
+            />
+
           </Routes>
         </motion.div>
       </AnimatePresence>
+      </Layout>
     </>
   )
 }
@@ -161,16 +180,16 @@ const EventBoardWrapper = () => {
   if (!id || !event) return null
 
   return (
-    <UnlockEvent
-      eventId={id}
-      event={event}
-    >
-      <EventBoard
+      <UnlockEvent
         eventId={id}
-        userId={user?.uid ?? ""}
-        userName={name}
-      />
-    </UnlockEvent>
+        event={event}
+      >
+        <EventBoard
+          eventId={id}
+          userId={user?.uid ?? ""}
+          userName={name}
+        />
+      </UnlockEvent>
   )
 }
 
@@ -203,17 +222,17 @@ const EventMomentsWrapper = () => {
   return null
 
   return (
-    <UnlockEvent
-      eventId={id}
-      event={event}
-    >
-    <EventMoments
-      eventId={id}
-      userId={user?.uid ?? ""}
-      userName={name}
-      isEventCreator={user && event?.creatorId === user.uid}
-    />
-    </UnlockEvent>
+      <UnlockEvent
+        eventId={id}
+        event={event}
+      >
+      <EventMoments
+        eventId={id}
+        userId={user?.uid ?? ""}
+        userName={name}
+        isEventCreator={user && event?.creatorId === user.uid}
+      />
+      </UnlockEvent>
   )
 
 }

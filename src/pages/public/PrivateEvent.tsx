@@ -264,6 +264,7 @@ const PrivateEvent = () => {
   const [alreadyRSVP,       setAlreadyRSVP]       = useState(false);
   const [editingDesc,       setEditingDesc]       = useState(false);
   const [descDraft,         setDescDraft]         = useState("");
+  const [loading, setLoading] = useState(true);
 
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -318,35 +319,43 @@ const PrivateEvent = () => {
       const [eventData, rsvps] = await Promise.all([getEventById(id), getRSVPs(id)]);
       if (!eventData) return;
 
-      setActiveEventId(id);
+      try {
+        setLoading(true);
 
-      if (isLoggedIn && user) {
-        const userDB = await getUser(user.uid);
-        if (userDB) { setFirstName(userDB.firstName); setLastName(userDB.lastName); }
-      }
+        setActiveEventId(id);
 
-      const loadedEvent = { ...eventData, showAttendees: eventData?.showAttendees ?? true };
-
-      // Auto-unlock boards if event date is reached
-      if (isEventDateReached(eventData.eventDate)) {
-        const updates: Record<string, boolean> = {};
-        if (!eventData.memoriesBoardEnabled) updates.memoriesBoardEnabled = true;
-        if (!eventData.pinboardEnabled)      updates.pinboardEnabled      = true;
-        if (Object.keys(updates).length > 0) {
-          await updateDoc(doc(db, "private-events", id), updates);
-          Object.assign(loadedEvent, updates);
+        if (isLoggedIn && user) {
+          const userDB = await getUser(user.uid);
+          if (userDB) { setFirstName(userDB.firstName); setLastName(userDB.lastName); }
         }
-      }
 
-      setEvent(loadedEvent);
-      setDescDraft(eventData.description || "");
-      setAttendees(rsvps);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setGroups([...new Set(rsvps.map((a: any) => a.group).filter(Boolean))] as string[]);
-      if (localStorage.getItem(rsvpKey)) setAlreadyRSVP(true);
+        const loadedEvent = { ...eventData, showAttendees: eventData?.showAttendees ?? true };
 
-      if (user && user.uid !== eventData.creatorId) {
-        try { await saveInvitedEvent(user.uid, id); } catch { /* already saved */ }
+        // Auto-unlock boards if event date is reached
+        if (isEventDateReached(eventData.eventDate)) {
+          const updates: Record<string, boolean> = {};
+          if (!eventData.memoriesBoardEnabled) updates.memoriesBoardEnabled = true;
+          if (!eventData.pinboardEnabled)      updates.pinboardEnabled      = true;
+          if (Object.keys(updates).length > 0) {
+            await updateDoc(doc(db, "private-events", id), updates);
+            Object.assign(loadedEvent, updates);
+          }
+        }
+
+        setEvent(loadedEvent);
+        setDescDraft(eventData.description || "");
+        setAttendees(rsvps);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setGroups([...new Set(rsvps.map((a: any) => a.group).filter(Boolean))] as string[]);
+        if (localStorage.getItem(rsvpKey)) setAlreadyRSVP(true);
+
+        if (user && user.uid !== eventData.creatorId) {
+          try { await saveInvitedEvent(user.uid, id); } catch { /* already saved */ }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
     load();
@@ -468,7 +477,13 @@ const PrivateEvent = () => {
     return d.toLocaleDateString("de-DE", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   };
 
-  if (!event) return <h1 className="load-event">Lade Event...</h1>;
+  if (loading || !event) {
+    return (
+      <div className="loader-screen">
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <UnlockEvent eventId={id!} event={event}>

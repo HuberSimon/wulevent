@@ -115,6 +115,7 @@ const EventMoments = ({
   const [guestFirstName,  setGuestFirstName]  = useState("");
   const [guestLastName,   setGuestLastName]   = useState("");
   const [resolvedName,    setResolvedName]    = useState<string | null>(userName ?? null);
+  const [screenLoading, setScreenLoading] = useState(true);
 
   useEffect(() => {
     if (userName) setResolvedName(userName);
@@ -127,12 +128,19 @@ const EventMoments = ({
 
   useEffect(() => {
     const load = async () => {
-      const event = await getEventById(eventId);
-      setBoardEnabled(!!event?.memoriesBoardEnabled);
-      if (event) setEventName(event.title);
-      const q    = query(collection(db, "private-events", eventId, "moments"), orderBy("createdAt", "desc"));
-      const snap = await getDocs(q);
-      setPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as MomentPost[]);
+      try {
+        setScreenLoading(true);
+        const event = await getEventById(eventId);
+        setBoardEnabled(!!event?.memoriesBoardEnabled);
+        if (event) setEventName(event.title);
+        const q    = query(collection(db, "private-events", eventId, "moments"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        setPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as MomentPost[]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setScreenLoading(false);
+      }
     };
     load();
   }, [eventId]);
@@ -284,6 +292,14 @@ const EventMoments = ({
       setZipProgress(0);
     }
   };
+
+  if (screenLoading) {
+    return (
+      <div className="loader-screen">
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <div className="board-container">
