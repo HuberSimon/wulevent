@@ -33,7 +33,7 @@ export default function EventNavbar() {
           className={location.pathname === `/event/${activeEventId}` ? "active" : ""}
         >
           <span>⌂</span>
-          <span>Organisieren</span>
+          <span>Organisation</span>
         </Link>
 
         <Link
@@ -41,7 +41,7 @@ export default function EventNavbar() {
           className={location.pathname.includes("moments") ? "active" : ""}
         >
           <span>▢</span>
-          <span>Memories</span>
+          <span>Fotos</span>
         </Link>
 
         <Link

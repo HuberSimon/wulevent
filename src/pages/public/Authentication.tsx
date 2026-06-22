@@ -8,7 +8,8 @@ import {
 } from "firebase/auth"
 import { auth, db } from "../../firebase"
 import "./Authentication.css"
-import { doc, setDoc } from "firebase/firestore"
+import { doc, getDoc, setDoc } from "firebase/firestore"
+
 const Authentication: React.FC = () => {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
@@ -32,8 +33,27 @@ const Authentication: React.FC = () => {
     setLoading(true)
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password)
-        toast.success("Willkommen zurück 👋")
+        const result = await signInWithEmailAndPassword(auth, email, password);
+
+        const user = result.user;
+
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+
+        if (!userDoc.exists()) {
+          await auth.signOut();
+          toast.error("User nicht gefunden");
+          return;
+        }
+
+        const data = userDoc.data();
+
+        if (!data.isEnabled) {
+          await auth.signOut();
+          toast.error("Account ist deaktiviert - Kontaktiere Simon, um deinen Account zu aktivieren");
+          return;
+        }
+
+        toast.success("Willkommen zurück 👋");
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, password)
         const user = result.user
