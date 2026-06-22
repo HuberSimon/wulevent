@@ -304,8 +304,9 @@ const EventMoments = ({
   return (
     <div className="board-container">
       <div className="board-info">
-        <h1>Momente <br /> {eventName}</h1>
-        <p>Teile Momente mit allen Teilnehmern</p>
+        <h1>Galerie</h1>
+        <h2>{eventName}</h2>
+        <p><br/>Teile Fotos und Highlights mit allen Teilnehmern</p>
       </div>
 
       <div className="divider" />
@@ -356,22 +357,24 @@ const EventMoments = ({
         </div>
       )}
 
-      {!isEnabled && (
-          <p>Memories Board ist leider noch nicht vom Veranstalter freigeschaltet.</p>
+      {isEnabled && (  
+        <div className="board-grid">
+          {posts.map((post) => (
+            <MomentCard
+              key={post.id}
+              post={post}
+              canDelete={isEventCreator || post.userId === userId}
+              canDownload={isEventCreator}
+              onDelete={() => handleDeletePost(post.id)}
+              onDownload={handleDownloadImage}
+            />
+          ))}
+        </div>
       )}
 
-      <div className="board-grid">
-        {posts.map((post) => (
-          <MomentCard
-            key={post.id}
-            post={post}
-            canDelete={isEventCreator || post.userId === userId}
-            canDownload={isEventCreator}
-            onDelete={() => handleDeletePost(post.id)}
-            onDownload={handleDownloadImage}
-          />
-        ))}
-      </div>
+      {!isEnabled && (
+        <p>Fotoalbum ist leider noch nicht vom Veranstalter freigeschaltet.</p>
+      )}
 
       {showNameDialog && (
         <div className="modal-overlay" onClick={() => setShowNameDialog(false)}>

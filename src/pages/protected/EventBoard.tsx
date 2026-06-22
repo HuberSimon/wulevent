@@ -131,8 +131,9 @@ export default function EventBoard({
     <div className="board-container">
 
       <div className="board-info">
-        <h1>Pinnwand <br /> {eventName}</h1>
-        <p>Teile Gedanken mit allen Teilnehmern</p>
+        <h1>Pinnwand </h1>
+        <h2>{eventName}</h2>
+        <p><br/>Teile Gedanken mit allen Teilnehmern</p>
       </div>
 
       <div className="divider" />
@@ -217,7 +218,6 @@ export default function EventBoard({
       {!isEnabled && (
           <p>Pinnwand ist leider noch nicht vom Veranstalter freigeschaltet.</p>
       )}
-
 
     </div>
   );

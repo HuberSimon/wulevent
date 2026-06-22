@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
-import { getEventById } from "../../services/database/private-event-service";
-import { saveInvitedEvent } from "../../services/database/private-event-service";
+import {
+  getEventById,
+  saveInvitedEvent,
+} from "../../services/database/private-event-service";
 import { addRSVP, getRSVPs, updateRSVPGroup } from "../../services/database/rsvp-service";
 import { useAuth } from "../../context/AuthContext";
 import { useEvent } from "../../context/EventContext";
@@ -11,6 +13,28 @@ import { db } from "../../firebase";
 import "./PrivateEvent.css";
 import { getUser } from "../../services/database/user-service";
 import UnlockEvent from "../../components/UnlockEvent";
+
+// ─── Typen ─────────────────────────────────────────────────────────────────
+interface MyRSVP {
+  firstName: string;
+  lastName: string;
+  guests: number;
+  comment: string;
+  status: string;
+}
+
+interface Attendee {
+  id: string;
+  firstName: string;
+  lastName: string;
+  guests: number;
+  comment: string;
+  status: "yes" | "no";
+  group: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EventData = any;
 
 // ─── useTouchDragDrop ─────────────────────────────────────────────────────────
 // eslint-disable-next-line react-refresh/only-export-components
@@ -62,7 +86,7 @@ export const useTouchDragDrop = (
     }
   }, []);
 
-  const scrollStep = () => {
+  const scrollStep = useCallback(() => {
     if (!scrolling.current || !dragging.current) {
       stopAutoScroll();
       return;
@@ -74,14 +98,15 @@ export const useTouchDragDrop = (
     if (y < topZone) delta = -SPEED * ((topZone - y) / topZone);
     else if (y > bottomZone) delta = SPEED * ((y - bottomZone) / EDGE);
     if (delta !== 0) window.scrollBy(0, delta);
+    // eslint-disable-next-line react-hooks/immutability
     animFrame.current = requestAnimationFrame(scrollStep);
-  };
+  }, [stopAutoScroll]);
 
-  const startAutoScroll = () => {
+  const startAutoScroll = useCallback(() => {
     if (scrolling.current) return;
     scrolling.current = true;
     animFrame.current = requestAnimationFrame(scrollStep);
-  };
+  }, [scrollStep]);
 
   const getDropTarget = (x: number, y: number): string | null => {
     if (ghost.current) ghost.current.style.visibility = "hidden";
@@ -119,10 +144,15 @@ export const useTouchDragDrop = (
     stopAutoScroll();
     removeGhost();
     document.querySelectorAll(".drop-highlight").forEach(el => el.classList.remove("drop-highlight"));
-    document.querySelectorAll<HTMLElement>(".attendees, .group-box").forEach(el => {
-      el.style.overscrollBehavior = "";
-    });
   }, [stopAutoScroll]);
+
+  // Stabile Referenz auf onDrop, damit der untenstehende useEffect nicht bei
+  // jeder neuen onDrop-Funktion (z.B. weil attendees sich ändert) neu läuft
+  // und damit laufende Touch-Drags nicht abreißen.
+  const onDropRef = useRef(onDrop);
+  useEffect(() => {
+    onDropRef.current = onDrop;
+  }, [onDrop]);
 
   useEffect(() => {
     if (!isEnabled) return;
@@ -142,7 +172,7 @@ export const useTouchDragDrop = (
       if (!dragging.current || !draggedId.current) { cleanup(); return; }
       const t      = e.changedTouches[0];
       const target = getDropTarget(t.clientX, t.clientY);
-      if (target !== null) onDrop(draggedId.current, target);
+      if (target !== null) onDropRef.current(draggedId.current, target);
       cleanup();
     };
     document.addEventListener("touchmove",   onMove, { passive: false });
@@ -153,7 +183,7 @@ export const useTouchDragDrop = (
       document.removeEventListener("touchend",    onEnd);
       document.removeEventListener("touchcancel", onEnd);
     };
-  }, [isEnabled, onDrop, startAutoScroll, cleanup]);
+  }, [isEnabled, startAutoScroll, cleanup]);
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent, id: string) => {
@@ -192,10 +222,16 @@ export const useTouchDragDrop = (
   return { handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel: handleTouchEnd };
 };
 
+// ─── helpers ──────────────────────────────────────────────────────────────────
+const getInitials = (firstName?: string, lastName?: string) => {
+  const a = firstName?.trim()?.[0] ?? "";
+  const b = lastName?.trim()?.[0] ?? "";
+  return (a + b).toUpperCase() || "?";
+};
+
 // ─── AttendeeCard ─────────────────────────────────────────────────────────────
 interface AttendeeCardProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  attendee: any;
+  attendee: Attendee;
   isCreator: boolean;
   onDelete: (id: string) => void;
   dragHandlers: {
@@ -226,16 +262,36 @@ const AttendeeCard = ({ attendee, isCreator, onDelete, dragHandlers }: AttendeeC
             onDelete(attendee.id);
           }
         }}
+        aria-label="Teilnehmer entfernen"
       >
         ×
       </button>
     )}
-    <strong>{attendee.firstName} {attendee.lastName}</strong>
-    <span className={`attendee-status ${attendee.status === "yes" ? "yes" : "no"}`}>
-      {attendee.status === "yes" ? "Zugesagt" : "Abgesagt"}
-    </span>
-    <span>{attendee.guests} Personen</span>
-    {attendee.comment && <p>{attendee.comment}</p>}
+
+    <div className="attendee-avatar" aria-hidden="true">
+      {getInitials(attendee.firstName, attendee.lastName)}
+    </div>
+
+    <div className="attendee-main">
+      <div className="attendee-top-row">
+        <strong className="attendee-name">
+          {attendee.firstName} {attendee.lastName}
+        </strong>
+        <span className={`attendee-status ${attendee.status === "yes" ? "yes" : "no"}`}>
+          {attendee.status === "yes" ? "Zugesagt" : "Abgesagt"}
+        </span>
+      </div>
+
+      <div className="attendee-bottom-row">
+        <span className="attendee-guests">
+          {attendee.guests} {attendee.guests === 1 ? "Person" : "Personen"}
+        </span>
+      </div>
+
+      {attendee.comment && (
+        <p className="attendee-comment">„{attendee.comment}“</p>
+      )}
+    </div>
   </div>
 );
 
@@ -244,10 +300,8 @@ const PrivateEvent = () => {
   const { id }   = useParams();
   const { user } = useAuth();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [event,             setEvent]             = useState<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [attendees,         setAttendees]         = useState<any[]>([]);
+  const [event,             setEvent]             = useState<EventData>(null);
+  const [attendees,         setAttendees]         = useState<Attendee[]>([]);
   const [groups,            setGroups]            = useState<string[]>([]);
   const [newGroup,          setNewGroup]          = useState("");
   const [showRSVPModal,     setShowRSVPModal]     = useState(false);
@@ -258,15 +312,15 @@ const PrivateEvent = () => {
   const [lastName,          setLastName]          = useState("");
   const [guests,            setGuests]            = useState(1);
   const [comment,           setComment]           = useState("");
-  const [status,            setStatus]            = useState("yes");
+  const [status,            setStatus]            = useState<"yes" | "no">("yes");
   const [newPassword,       setNewPassword]       = useState("");
   const [copied,            setCopied]            = useState(false);
   const [alreadyRSVP,       setAlreadyRSVP]       = useState(false);
+  const [myRSVP,            setMyRSVP]            = useState<MyRSVP | null>(null);
   const [editingDesc,       setEditingDesc]       = useState(false);
   const [descDraft,         setDescDraft]         = useState("");
-  const [loading, setLoading] = useState(true);
-
-  const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [loading,           setLoading]           = useState(true);
+  const [submittingRSVP,    setSubmittingRSVP]    = useState(false);
 
   const rsvpKey    = `rsvp-${id}`;
   const eventLink  = `${window.location.origin}/event/${id}`;
@@ -286,15 +340,40 @@ const PrivateEvent = () => {
   }, []);
 
   // ── attendee move ──────────────────────────────────────────────────────
+  // Funktionales Setzen, damit diese Funktion NICHT von "attendees" abhängt.
+  // Dadurch bleibt die Referenz stabil und useTouchDragDrop muss seine
+  // Touch-Listener nicht bei jeder Attendee-Änderung neu registrieren.
   const moveAttendee = useCallback(
     async (attendeeId: string, group: string) => {
       if (!id) return;
-      const attendee = attendees.find(a => a.id === attendeeId);
-      if (!attendee || attendee.group === group) return;
-      await updateRSVPGroup(id, attendeeId, group);
-      setAttendees(prev => prev.map(a => a.id === attendeeId ? { ...a, group } : a));
+
+      let didChange = false;
+      setAttendees(prev =>
+        prev.map(a => {
+          if (a.id === attendeeId && a.group !== group) {
+            didChange = true;
+            return { ...a, group };
+          }
+          return a;
+        })
+      );
+
+      if (!didChange) return;
+
+      try {
+        await updateRSVPGroup(id, attendeeId, group);
+      } catch (err) {
+        console.error("Gruppe verschieben fehlgeschlagen:", err);
+        // Bei Fehler die UI nicht inkonsistent lassen: Daten neu laden.
+        try {
+          const fresh = await getRSVPs(id);
+          setAttendees(fresh as Attendee[]);
+        } catch {
+          /* ignore */
+        }
+      }
     },
-    [id, attendees]
+    [id]
   );
 
   const touchHandlers = useTouchDragDrop(isCreator, moveAttendee);
@@ -314,19 +393,38 @@ const PrivateEvent = () => {
 
   // ── data load ──────────────────────────────────────────────────────────
   useEffect(() => {
+    let isMounted = true;
+
     const load = async () => {
       if (!id) return;
-      const [eventData, rsvps] = await Promise.all([getEventById(id), getRSVPs(id)]);
-      if (!eventData) return;
 
+      setLoading(true);
       try {
-        setLoading(true);
+        const [eventData, rsvps] = await Promise.all([
+          getEventById(id),
+          getRSVPs(id),
+        ]);
+
+        if (!isMounted) return;
+
+        if (!eventData) {
+          setLoading(false);
+          return;
+        }
 
         setActiveEventId(id);
 
+        let profileFirstName = "";
+        let profileLastName  = "";
+
         if (isLoggedIn && user) {
           const userDB = await getUser(user.uid);
-          if (userDB) { setFirstName(userDB.firstName); setLastName(userDB.lastName); }
+          if (userDB) {
+            profileFirstName = userDB.firstName;
+            profileLastName  = userDB.lastName;
+            setFirstName(userDB.firstName);
+            setLastName(userDB.lastName);
+          }
         }
 
         const loadedEvent = { ...eventData, showAttendees: eventData?.showAttendees ?? true };
@@ -342,27 +440,68 @@ const PrivateEvent = () => {
           }
         }
 
+        if (!isMounted) return;
+
         setEvent(loadedEvent);
         setDescDraft(eventData.description || "");
-        setAttendees(rsvps);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setGroups([...new Set(rsvps.map((a: any) => a.group).filter(Boolean))] as string[]);
-        if (localStorage.getItem(rsvpKey)) setAlreadyRSVP(true);
+        setAttendees(rsvps as Attendee[]);
+        setGroups([...new Set((rsvps as Attendee[]).map((a) => a.group).filter(Boolean))]);
+
+        const storedRSVP = localStorage.getItem(rsvpKey);
+        if (storedRSVP) {
+          try {
+            const parsed = JSON.parse(storedRSVP) as MyRSVP;
+            setMyRSVP(parsed);
+            setAlreadyRSVP(true);
+          } catch {
+            localStorage.removeItem(rsvpKey);
+            setAlreadyRSVP(false);
+          }
+        } else if (isLoggedIn && profileFirstName && profileLastName) {
+          const match = (rsvps as Attendee[]).find(
+            (a) =>
+              a.firstName?.toLowerCase() === profileFirstName.toLowerCase() &&
+              a.lastName?.toLowerCase() === profileLastName.toLowerCase()
+          );
+
+          if (match) {
+            setMyRSVP({
+              firstName: match.firstName,
+              lastName: match.lastName,
+              guests: match.guests,
+              comment: match.comment,
+              status: match.status,
+            });
+            setAlreadyRSVP(true);
+          }
+        }
 
         if (user && user.uid !== eventData.creatorId) {
-          try { await saveInvitedEvent(user.uid, id); } catch { /* already saved */ }
+          try {
+            await saveInvitedEvent(user.uid, id);
+          } catch {
+            /* bereits gespeichert */
+          }
         }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
+
     load();
-  }, [id, user, isLoggedIn, rsvpKey, isEventDateReached]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, user, isLoggedIn, rsvpKey, isEventDateReached, setActiveEventId]);
 
   useEffect(() => {
     document.body.style.overflow = (showRSVPModal || showPasswordModal || showQRModal) ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [showRSVPModal, showPasswordModal, showQRModal]);
 
   const handleCopyLink = async () => {
@@ -381,20 +520,46 @@ const PrivateEvent = () => {
   };
 
   const handleRSVP = async () => {
-    if (!firstName) return alert("Bitte Vorname eingeben");
-    if (!lastName)  return alert("Bitte Nachname eingeben");
+    if (submittingRSVP || !id) return;
+
+    const trimmedFirst = firstName.trim();
+    const trimmedLast  = lastName.trim();
+
+    if (!trimmedFirst) return alert("Bitte Vorname eingeben");
+    if (!trimmedLast)  return alert("Bitte Nachname eingeben");
+    if (!guests || guests < 1) return alert("Bitte eine gültige Anzahl an Personen angeben");
+
     const exists = attendees.find(
-      a => a.firstName.toLowerCase() === firstName.toLowerCase() &&
-           a.lastName.toLowerCase()  === lastName.toLowerCase()
+      a => a.firstName.toLowerCase() === trimmedFirst.toLowerCase() &&
+           a.lastName.toLowerCase()  === trimmedLast.toLowerCase()
     );
     if (exists) return alert("Name existiert bereits");
-    await addRSVP(id!, { firstName, lastName, guests, comment, status });
-    const updated = await getRSVPs(id!);
-    setAttendees(updated);
-    localStorage.setItem(rsvpKey, "true");
-    setAlreadyRSVP(true);
-    setFirstName(""); setLastName(""); setGuests(1); setComment("");
-    setShowRSVPModal(false);
+
+    setSubmittingRSVP(true);
+    try {
+      await addRSVP(id, {
+        firstName: trimmedFirst,
+        lastName: trimmedLast,
+        guests,
+        comment,
+        status,
+      });
+      const updated = await getRSVPs(id);
+      setAttendees(updated as Attendee[]);
+
+      const rsvpData: MyRSVP = { firstName: trimmedFirst, lastName: trimmedLast, guests, comment, status };
+      localStorage.setItem(rsvpKey, JSON.stringify(rsvpData));
+      setMyRSVP(rsvpData);
+      setAlreadyRSVP(true);
+
+      setFirstName(""); setLastName(""); setGuests(1); setComment("");
+      setShowRSVPModal(false);
+    } catch (err) {
+      console.error("RSVP fehlgeschlagen:", err);
+      alert("Etwas ist schiefgelaufen. Bitte versuche es erneut.");
+    } finally {
+      setSubmittingRSVP(false);
+    }
   };
 
   const toggleAttendeesVisibility = async () => {
@@ -402,17 +567,28 @@ const PrivateEvent = () => {
     const newValue = !(event?.showAttendees ?? true);
     try {
       await updateDoc(doc(db, "private-events", id), { showAttendees: newValue });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setEvent((prev: any) => ({ ...prev, showAttendees: newValue }));
-    } catch (err) { console.error("Failed to update visibility:", err); }
+      setEvent((prev: EventData) => ({ ...prev, showAttendees: newValue }));
+    } catch (err) {
+      console.error("Failed to update visibility:", err);
+    }
   };
 
   const handlePasswordUpdate = async () => {
-    await updateDoc(doc(db, "private-events", id!), { password: newPassword });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setEvent((prev: any) => ({ ...prev, password: newPassword }));
-    setNewPassword("");
-    setShowPasswordModal(false);
+    if (!id) return;
+    const trimmed = newPassword.trim();
+    if (!trimmed) {
+      alert("Bitte ein Passwort eingeben.");
+      return;
+    }
+    try {
+      await updateDoc(doc(db, "private-events", id), { password: trimmed });
+      setEvent((prev: EventData) => ({ ...prev, password: trimmed }));
+      setNewPassword("");
+      setShowPasswordModal(false);
+    } catch (err) {
+      console.error("Passwort ändern fehlgeschlagen:", err);
+      alert("Passwort konnte nicht geändert werden. Bitte versuche es erneut.");
+    }
   };
 
   const handleDeleteAttendee = async (attendeeId: string) => {
@@ -420,17 +596,22 @@ const PrivateEvent = () => {
     try {
       await deleteDoc(doc(db, "private-events", id, "attendees", attendeeId));
       setAttendees(prev => prev.filter(a => a.id !== attendeeId));
-    } catch (err) { console.error("Teilnehmer löschen fehlgeschlagen:", err); }
+    } catch (err) {
+      console.error("Teilnehmer löschen fehlgeschlagen:", err);
+      alert("Teilnehmer konnte nicht entfernt werden.");
+    }
   };
 
   const handleSaveDescription = async () => {
     if (!id) return;
     try {
       await updateDoc(doc(db, "private-events", id), { description: descDraft });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setEvent((prev: any) => ({ ...prev, description: descDraft }));
+      setEvent((prev: EventData) => ({ ...prev, description: descDraft }));
       setEditingDesc(false);
-    } catch (err) { console.error("Beschreibung speichern fehlgeschlagen:", err); }
+    } catch (err) {
+      console.error("Beschreibung speichern fehlgeschlagen:", err);
+      alert("Beschreibung konnte nicht gespeichert werden.");
+    }
   };
 
   const handleToggleBoard = async (board: "memoriesBoardEnabled" | "pinboardEnabled") => {
@@ -438,9 +619,10 @@ const PrivateEvent = () => {
     const newValue = !event?.[board];
     try {
       await updateDoc(doc(db, "private-events", id), { [board]: newValue });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setEvent((prev: any) => ({ ...prev, [board]: newValue }));
-    } catch (err) { console.error("Board-Status ändern fehlgeschlagen:", err); }
+      setEvent((prev: EventData) => ({ ...prev, [board]: newValue }));
+    } catch (err) {
+      console.error("Board-Status ändern fehlgeschlagen:", err);
+    }
   };
 
   const handleDownloadQR = () => {
@@ -454,8 +636,9 @@ const PrivateEvent = () => {
   };
 
   const createGroup = () => {
-    if (!newGroup.trim()) return;
-    if (!groups.includes(newGroup)) setGroups(g => [...g, newGroup]);
+    const trimmed = newGroup.trim();
+    if (!trimmed) return;
+    if (!groups.includes(trimmed)) setGroups(g => [...g, trimmed]);
     setNewGroup("");
   };
 
@@ -501,54 +684,82 @@ const PrivateEvent = () => {
             )}
 
             <div className="event-content">
-              <img
-                className="event-img"
-                src={event?.imagePath || "/images/sonstige-veranstaltung.png"}
-                alt=""
-              />
-              <div className="event-description-wrap">
-                {editingDesc ? (
-                  <div className="desc-edit-area">
-                    <textarea
-                      className="desc-textarea"
-                      value={descDraft}
-                      onChange={(e) => setDescDraft(e.target.value)}
-                      rows={6}
-                      autoFocus
-                    />
-                    <div className="desc-edit-actions">
-                      <button className="desc-save-btn" onClick={handleSaveDescription}>Speichern</button>
-                      <button className="desc-cancel-btn" onClick={() => { setEditingDesc(false); setDescDraft(event.description || ""); }}>Abbrechen</button>
+              <div className="event-content-horizon">
+                <img
+                  className="event-img"
+                  src={event?.imagePath || "/images/sonstige-veranstaltung.png"}
+                  alt=""
+                />
+                <div className="event-description-wrap">
+                  {editingDesc ? (
+                    <div className="desc-edit-area">
+                      <textarea
+                        className="desc-textarea"
+                        value={descDraft}
+                        onChange={(e) => setDescDraft(e.target.value)}
+                        rows={6}
+                        autoFocus
+                      />
+                      <div className="desc-edit-actions">
+                        <button className="desc-save-btn" onClick={handleSaveDescription}>Speichern</button>
+                        <button className="desc-cancel-btn" onClick={() => { setEditingDesc(false); setDescDraft(event.description || ""); }}>Abbrechen</button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="desc-display">
-                    {isCreator && (
-                      <button className="desc-edit-btn" title="Beschreibung bearbeiten" onClick={() => { setDescDraft(event.description || ""); setEditingDesc(true); }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                        </svg>
-                      </button>
-                    )}
-                    <p className="desc-text">{event.description}</p>
-                  </div>
-                )}
+                  ) : (
+                    <div className="desc-display">
+                      {isCreator && (
+                        <button className="desc-edit-btn" title="Beschreibung bearbeiten" onClick={() => { setDescDraft(event.description || ""); setEditingDesc(true); }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                          </svg>
+                        </button>
+                      )}
+                      <p className="desc-text">{event.description}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="event-content-right">
+                  {!alreadyRSVP && !isCreator && (
+                    <button className="open-rsvp-btn" onClick={() => setShowRSVPModal(true)}>Rückmelden</button>
+                  )}
+                  {!isLoggedIn && !isCreator && (
+                    <button
+                      className="login-save-btn"
+                      onClick={() => { localStorage.setItem("redirectEvent", id!); navigate("/login"); }}
+                    >
+                      Einloggen & Event speichern
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="event-content-right">
-                {!alreadyRSVP && !isCreator && (
-                  <button className="open-rsvp-btn" onClick={() => setShowRSVPModal(true)}>Rückmelden</button>
-                )}
-                {alreadyRSVP && !isCreator && <span className="rsvp-done">Erfolgreich zurückgemeldet</span>}
-                {!isLoggedIn && !isCreator && (
-                  <button
-                    className="login-save-btn"
-                    onClick={() => { localStorage.setItem("redirectEvent", id!); navigate("/login"); }}
-                  >
-                    Einloggen & Event speichern
-                  </button>
-                )}
-              </div>
+              {/* ── Bereits-zurückgemeldet-Bestätigung: unterhalb von Bild & Beschreibung ── */}
+              {alreadyRSVP && !isCreator && myRSVP && (
+                <div className={`rsvp-confirmed-card ${myRSVP.status === "yes" ? "is-yes" : "is-no"}`}>
+                  <div className="rsvp-confirmed-icon">
+                    {myRSVP.status === "yes" ? "✓" : "✕"}
+                  </div>
+                  <div className="rsvp-confirmed-body">
+                    <strong className="rsvp-confirmed-title">
+                      Du hast bereits geantwortet, {myRSVP.firstName}
+                    </strong>
+                    <div className="rsvp-confirmed-meta">
+                      <span className={`attendee-status ${myRSVP.status === "yes" ? "yes" : "no"}`}>
+                        {myRSVP.status === "yes" ? "Zugesagt" : "Abgesagt"}
+                      </span>
+                      {myRSVP.status === "yes" && (
+                        <span className="attendee-guests">
+                          {myRSVP.guests} {myRSVP.guests === 1 ? "Person" : "Personen"}
+                        </span>
+                      )}
+                    </div>
+                    {myRSVP.comment && (
+                      <p className="rsvp-confirmed-comment">„{myRSVP.comment}“</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {isCreator && (
@@ -594,8 +805,6 @@ const PrivateEvent = () => {
               </div>
             )}
           </div>
-
-          <div className="overlay" />
         </div>
 
         {/* ungrouped attendees */}
@@ -674,7 +883,6 @@ const PrivateEvent = () => {
                   bgColor="#ffffff"
                   fgColor="#1a1410"
                   level="H"
-                  ref={qrCanvasRef}
                 />
               </div>
               <p className="qr-link-text">{eventLink}</p>
@@ -687,28 +895,51 @@ const PrivateEvent = () => {
 
         {/* RSVP modal */}
         {showRSVPModal && (
-          <div className="modal-overlay" onClick={() => setShowRSVPModal(false)}>
+          <div
+            className="modal-overlay"
+            onClick={() => { if (!submittingRSVP) setShowRSVPModal(false); }}
+          >
             <div className="rsvp-modal" onClick={(e) => e.stopPropagation()}>
               <div className="rsvp-header">
                 <h2>Rückmeldung</h2>
                 <p>Sag uns kurz ob du kommst</p>
-                <button className="rsvp-modal-close" onClick={() => setShowRSVPModal(false)}>×</button>
+                <button
+                  className="rsvp-modal-close"
+                  onClick={() => setShowRSVPModal(false)}
+                  disabled={submittingRSVP}
+                >
+                  ×
+                </button>
               </div>
-              <div className="rsvp-body">
+              <fieldset className="rsvp-body" disabled={submittingRSVP}>
                 <input placeholder="Vorname" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                 <input placeholder="Nachname" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 <input
                   type="number" min={1} value={guests}
-                  onChange={(e) => setGuests(Number(e.target.value))}
+                  onChange={(e) => setGuests(Math.max(1, Number(e.target.value) || 1))}
                   placeholder="Anzahl Personen"
                 />
                 <textarea placeholder="Kommentar (optional)" value={comment} onChange={(e) => setComment(e.target.value)} />
                 <div className="rsvp-choice">
-                  <button className={status === "yes" ? "active yes" : ""} onClick={() => setStatus("yes")}>Ich komme</button>
-                  <button className={status === "no"  ? "active no"  : ""} onClick={() => setStatus("no")}>Leider nicht</button>
+                  <button type="button" className={status === "yes" ? "active yes" : ""} onClick={() => setStatus("yes")}>Ich komme</button>
+                  <button type="button" className={status === "no"  ? "active no"  : ""} onClick={() => setStatus("no")}>Leider nicht</button>
                 </div>
-                <button className="rsvp-submit" onClick={handleRSVP}>Absenden</button>
-              </div>
+                <button
+                  type="button"
+                  className="rsvp-submit"
+                  onClick={handleRSVP}
+                  disabled={submittingRSVP}
+                >
+                  {submittingRSVP ? (
+                    <>
+                      <span className="btn-spinner" aria-hidden="true" />
+                      Wird gesendet…
+                    </>
+                  ) : (
+                    "Absenden"
+                  )}
+                </button>
+              </fieldset>
             </div>
           </div>
         )}
@@ -723,6 +954,7 @@ const PrivateEvent = () => {
               <input
                 type="text" placeholder="Neues Passwort" value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handlePasswordUpdate(); }}
               />
               <div className="modal-save">
                 <button className="active" onClick={handlePasswordUpdate}>Speichern</button>

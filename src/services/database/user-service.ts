@@ -6,6 +6,7 @@ export interface User {
   firstName: string
   lastName: string
   email: string
+  isEnabled: boolean
 }
 
 export async function getUser(uid: string): Promise<User | null> {
@@ -35,7 +36,8 @@ export async function createUser(user: User): Promise<void> {
     await setDoc(docRef, {
       firstName: user.firstName,
       lastName: user.lastName,
-      email: user.email
+      email: user.email,
+      isEnabled: false
     })
   } catch (error) {
     console.error("Fehler beim Erstellen des Users:", error)
