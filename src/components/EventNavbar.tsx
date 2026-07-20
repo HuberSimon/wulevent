@@ -23,7 +23,7 @@ export default function EventNavbar() {
             to={`/dashboard`}
             className={location.pathname === `/dashboard` ? "active" : ""}
           >
-            <span>☰</span>
+            <span className="nav-icon">☰</span>
             <span>Veranstaltungen</span>
           </Link>
         )}
@@ -32,7 +32,7 @@ export default function EventNavbar() {
           to={`/event/${activeEventId}`}
           className={location.pathname === `/event/${activeEventId}` ? "active" : ""}
         >
-          <span>⌂</span>
+          <span className="nav-icon">⌂</span>
           <span>Organisation</span>
         </Link>
 
@@ -40,7 +40,7 @@ export default function EventNavbar() {
           to={`/event/${activeEventId}/moments`}
           className={location.pathname.includes("moments") ? "active" : ""}
         >
-          <span>▢</span>
+          <span className="nav-icon">▢</span>
           <span>Fotos</span>
         </Link>
 
@@ -48,7 +48,7 @@ export default function EventNavbar() {
           to={`/event/${activeEventId}/board`}
           className={location.pathname.includes("board") ? "active" : ""}
         >
-          <span>⦿</span>
+          <span className="nav-icon">⦿</span>
           <span>Pinnwand</span>
         </Link>
 

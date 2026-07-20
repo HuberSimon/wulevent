@@ -39,9 +39,19 @@
   align-items: center;
   gap: 2px;
 }
+.nav-icon {
+  font-size: 28px;
+  line-height: 1;
+  font-weight: bold;
+}
 
 .event-navbar a.active {
   color: #d6b27a;
+}
+
+.event-navbar a.active .nav-icon {
+  font-size: 34px;
+  transform: translateY(-4px);
 }
 
 /* DESKTOP override */

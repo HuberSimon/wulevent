@@ -20,6 +20,7 @@ import Dashboard from './pages/protected/Dashboard'
 import CreateEvent from './pages/protected/CreateEvent'
 import EventBoard from './pages/protected/EventBoard'
 import EventMoments from './pages/protected/EventMoments'
+import ScrollToTop from "./components/ScrollToTop";
 
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { EventProvider } from './context/EventContext'
@@ -47,6 +48,8 @@ function AnimatedRoutes() {
     <Layout>
     <BasicNavbar />
     {isEventRoute && <EventNavbar />}
+
+    <ScrollToTop />
 
       <AnimatePresence mode="wait">
         <motion.div
